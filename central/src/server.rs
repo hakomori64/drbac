@@ -5,10 +5,12 @@ use std::thread;
 use std::net::TcpStream;
 use std::net::TcpListener;
 
-use common::stream::read_stream;
+use common::connection::Connection;
+use common::messages::Message as DRBACMessage;
 
 mod request;
 mod state;
+mod handlers;
 
 use state::State;
 
@@ -126,14 +128,18 @@ pub fn start_server(host: &str, port: i32) {
 
 fn handle_connection(stream: TcpStream) {
 
-    let mut state = State::new(stream);
+    let mut connection: Connection = Connection::new();
+    connection.set_stream(stream).expect("setting stream failed");
+    let mut state = State::new();
     loop {
         println!("reading from stream...");
-        if let Ok((data, length)) = read_stream(&mut state.stream) {
-            assert_ne!(length, 0);
-            if request::handle_request(&mut state, data).is_err() {
+        if let Ok(data) = connection.read_json::<DRBACMessage>() {
+            let result = request::handle_request(&mut connection, state, data);
+            if result.is_err() {
+                println!("処理中にエラーが発生しました");
                 return;
             }
+            state = result.unwrap();
         } else {
             println!("connection closed. exiting...");
             break;

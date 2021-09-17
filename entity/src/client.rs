@@ -1,25 +1,32 @@
-use text_io::read;
+use common::io;
+
 
 mod state;
-mod connection;
+mod handlers;
 
 use state::State;
-use connection::connect;
+use handlers::connection::connect;
+use handlers::crypto_channel::crypto_channel;
+use common::connection::Connection;
+
 
 pub fn start_client() {
-    let mut state: Option<State> = None;
+    let mut state = State::new();
+    let mut connection: Connection = Connection::new();
     loop {
-        let command: String = read!("{}\n");
+        let mut new_state: Option<State> = None;
+        io::write(">> ");
+        let command: String = io::read_line();
     
         match command.as_str() {
             "connect" => {
-                print!("host: string = ");
-                let host: String = read!("{}\n");
-                print!("port: int = ");
-                let port: String = read!("{}\n");
-                let port: i32 = port.parse::<i32>().unwrap();
-                match connect(&mut state, host.as_str(), port) {
-                    Ok(()) => {
+                io::write("host: string = ");
+                let host: String = io::read_line();
+                io::write("port: int = ");
+                let port: i32 = io::read_line();
+                match connect(&mut connection, state, host.as_str(), port) {
+                    Ok(data) => {
+                        new_state = Some(data);
                         println!("コネクションの確立に成功しました。");
                     }
                     Err(_) => {
@@ -27,7 +34,17 @@ pub fn start_client() {
                     }
                 }
             }
-            "encrypt channel" => {}
+            "encrypt channel" => {
+                match crypto_channel(&mut connection, state) {
+                    Ok(data) => {
+                        new_state = Some(data);
+                        println!("通信の暗号化に成功しました");
+                    }
+                    Err(_) => {
+                        println!("通信の暗号化に失敗しました");
+                    }
+                }
+            }
             "identificate" => {}
             "whoami" => {}
             "delegate role" => {}
@@ -37,9 +54,25 @@ pub fn start_client() {
                 println!("shutting down");
                 break;
             }
-            _ => {
-                println!("認識されていないコマンドです");
+            "help" | _ => {
+                let data = r#"
+commands
+- connect
+- encrypt channel
+- identificate
+- whoami
+- delegate role
+- generate key
+- exit
+- quit
+- help
+                "#;
+                println!("{}", data);
             }
+        }
+
+        if new_state.is_some() {
+            state = new_state.unwrap();
         }
     }
 }

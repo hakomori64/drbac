@@ -1,5 +1,6 @@
 use std::net::{TcpStream, Shutdown};
 use std::io::prelude::*;
+use anyhow::{Result, anyhow};
 
 pub fn read_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize), &str> {
     match seek_stream(stream) {
@@ -16,7 +17,7 @@ pub fn read_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize), &str> {
     }
 }
 
-fn seek_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize), &str> {
+fn seek_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize)> {
     let buffer_size = 512;
     let mut request_buffer = vec![];
     let mut request_len = 0usize;
@@ -32,7 +33,7 @@ fn seek_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize), &str> {
                 }
             }
             _ => {
-                return Err("データを受け取る過程でエラーが発生しました。");
+                return Err(anyhow!("データを受け取る過程でエラーが発生しました。"));
             }
         }
     }
@@ -40,19 +41,19 @@ fn seek_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize), &str> {
     Ok((request_buffer, request_len))
 }
 
-pub fn write_stream(stream: &mut TcpStream, data: String) -> Result<(), &str> {
-    if let Err(_) = stream.write(data.as_bytes()) {
-        return Err("データの送信ができませんでした");
+pub fn write_stream(stream: &mut TcpStream, data: &[u8]) -> Result<()> {
+    if let Err(_) = stream.write(data) {
+        return Err(anyhow!("データの送信ができませんでした"));
     }
     
     if let Err(_) = stream.flush() {
-        return Err("メッセージの返信中にエラーが発生しました");
+        return Err(anyhow!("メッセージの返信中にエラーが発生しました"));
     }
 
     Ok(())
 }
 
 pub fn close_stream(stream: &mut TcpStream, message: &str) {
-    write_stream(stream, message.to_string()).unwrap();
+    write_stream(stream, message.as_bytes()).unwrap();
     stream.shutdown(Shutdown::Both).expect("コネクションのクローズに失敗しました");
 }

@@ -1,8 +1,6 @@
-use std::net::TcpStream;
 
-pub struct State {
-    pub stream: TcpStream,
-}
+#[derive(Copy, Clone)]
+pub struct State {}
 
 impl State {
     /// Create new State
@@ -11,7 +9,7 @@ impl State {
     /// 
     /// # Panic
     /// 
-    pub fn new(stream: TcpStream) -> State {
-        State { stream }
+    pub fn new() -> State {
+        State {}
     }
 }
