@@ -14,7 +14,7 @@ pub fn crypto_channel(connection: &mut Connection, state: State, data: &CryptoCh
     let public = PublicKey::from(&secret);
 
     let message = Message {
-        req_type: String::from("CRYPTO_CHANNEL_RES1"),
+        header: String::from("CRYPTO_CHANNEL_RES1"),
         data: struct_to_value(CryptoChannelRes1 {
             public_key: public.to_bytes()
         }).unwrap()
@@ -29,12 +29,12 @@ pub fn crypto_channel(connection: &mut Connection, state: State, data: &CryptoCh
     }
 
     let message = connection.read_json::<Message>()?;
-    if message.req_type.as_str() != "CRYPTO_CHANNEL_REQ2" {
+    if message.header.as_str() != "CRYPTO_CHANNEL_REQ2" {
         return Err(anyhow!("CRYPTO_CHANNEL_REQ2でないリクエストが来ました"));
     }
 
     let message = Message {
-        req_type: String::from("CRYPTO_CHANNEL_RES2"),
+        header: String::from("CRYPTO_CHANNEL_RES2"),
         data: struct_to_value(CryptoChannelRes2 {
             ping: String::from("hello")
         }).unwrap()

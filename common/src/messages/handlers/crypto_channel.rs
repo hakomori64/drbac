@@ -1,5 +1,6 @@
 use serde::{Serialize, Deserialize};
 
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CryptoChannelReq1 {
     pub public_key: [u8; 32],

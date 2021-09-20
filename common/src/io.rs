@@ -21,3 +21,22 @@ pub fn read_line<U: std::str::FromStr>() -> U {
         return input;
     }
 }
+
+pub fn read_until<U, F>(
+    before_read_message: &str,
+    invalid_message: &str,
+    condition: F
+) -> U
+where
+    U: std::str::FromStr,
+    F: Fn(&U) -> bool
+{
+    write(before_read_message);
+    let mut val: U = read_line();
+    while !condition(&val) {
+        println!("{}", invalid_message);
+        write(before_read_message);
+        val = read_line();
+    }
+    val
+}

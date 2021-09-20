@@ -6,9 +6,10 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use super::stream::{read_stream, write_stream, close_stream};
-use super::encoding::{vec_to_struct, struct_to_vec};
+use super::encoding::{vec_to_struct, struct_to_vec, struct_to_value, value_to_struct};
 use super::crypto::traits::CommonKeyCrypto;
 use super::messages::common_crypto::CommonKeyCryptoMessage;
+use super::messages::Message;
 use anyhow::{Result, anyhow};
 
 pub struct Connection {
@@ -95,6 +96,22 @@ impl Connection {
 
     pub fn write_json<T: Serialize>(&self, data: T) -> Result<()> {
         self.write(&struct_to_vec(data).unwrap()[..])
+    }
+
+    pub fn write_message<T: Serialize>(&self, header: String, data: T) -> Result<()> {
+        self.write_json(Message {
+            header: header,
+            data: struct_to_value(data).unwrap()
+        })
+    }
+
+    pub fn read_message<T: DeserializeOwned>(&self, header_expected: String) -> Result<T> {
+        let message = self.read_json::<Message>()?;
+        if message.header != header_expected {
+            return Err(anyhow!("期待しているメッセージが送られてきませんでした"));
+        }
+
+        value_to_struct(message.data)
     }
 
     pub fn close(&self, message: &str) -> Result<()> {
