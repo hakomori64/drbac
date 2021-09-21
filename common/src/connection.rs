@@ -105,7 +105,7 @@ impl Connection {
         })
     }
 
-    pub fn read_message<T: DeserializeOwned>(&self, header_expected: String) -> Result<T> {
+    pub fn read_message(&self, header_expected: String) -> Result<T> {
         let message = self.read_json::<Message>()?;
         if message.header != header_expected {
             return Err(anyhow!("期待しているメッセージが送られてきませんでした"));

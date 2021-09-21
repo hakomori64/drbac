@@ -22,13 +22,16 @@ impl std::fmt::Display for Actor {
     }
 }
 
-impl Actor {
-    pub fn from_string(name: &String) -> Result<Actor> {
-        if !is_valid_actor_type_str(name) {
+
+impl std::str::FromStr for Actor {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if !is_valid_actor_type_str(&String::from(s)) {
             return Err(anyhow!("名前の形式が正しくありません"));
         }
         
-        let actor = Actor::iter().find(|x| &x.to_string() == name);
+        let actor = Actor::iter().find(|x| x.to_string().as_str() == s);
 
         match actor {
             Some(actor) => Ok(actor),
