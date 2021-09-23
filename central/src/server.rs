@@ -133,16 +133,36 @@ fn handle_connection(stream: TcpStream) {
     let mut state = State::new();
     loop {
         println!("reading from stream...");
-        if let Ok(data) = connection.read_json::<DRBACMessage>() {
-            let result = request::handle_request(&mut connection, state, data);
-            if result.is_err() {
-                println!("処理中にエラーが発生しました");
-                return;
+        match connection.read_message() {
+            Ok(message) => {
+                let result = request::handle_request(&mut connection, state, message);
+                if let Err(error) = result {
+                    if connection.write_message(&DRBACMessage::Error {
+                        reason: error.to_string()
+                    }).is_err() {
+                        break;
+                    }
+                    if connection.close().is_err() {
+                        break;
+                    }
+                    break;
+                }
+                state = result.unwrap();
+            },
+            Err(error) => {
+                if connection.write_message(&DRBACMessage::Error {
+                    reason: error.to_string()
+                }).is_err() {
+                    println!("writing message failed");
+                    break;
+                }
+                if connection.close().is_err() {
+                    println!("closing connection failed");
+                    break;
+                }
+                break;
             }
-            state = result.unwrap();
-        } else {
-            println!("connection closed. exiting...");
-            break;
         }
     }
+    println!("リクエストのハンドリングを終了します");
 }

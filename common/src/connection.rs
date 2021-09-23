@@ -6,9 +6,9 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use super::stream::{read_stream, write_stream, close_stream};
-use super::encoding::{vec_to_struct, struct_to_vec, struct_to_value, value_to_struct};
+use super::encoding::{vec_to_struct, struct_to_vec};
 use super::crypto::traits::CommonKeyCrypto;
-use super::messages::common_crypto::CommonKeyCryptoMessage;
+use super::messages::CommonKeyCryptoMessage;
 use super::messages::Message;
 use anyhow::{Result, anyhow};
 
@@ -70,13 +70,16 @@ impl Connection {
         vec_to_struct(data)
     }
 
+    pub fn read_message(&self) -> Result<Message> {
+        self.read_json::<Message>()
+    }
+
     pub fn write(&self, data: &[u8]) -> Result<()> {
         println!("sending data {}...", str::from_utf8(data).unwrap());
         if self.stream.lock().unwrap().is_none() {
             return Err(anyhow!("streamの設定に失敗しました"));
         }
 
-        //let stream: &mut TcpStream = &mut self.stream.unwrap().try_clone().unwrap();
         if self.crypto_module.lock().unwrap().is_none() {
             return write_stream(&mut self.stream.lock().unwrap().as_ref().unwrap().try_clone().unwrap(), data);
         }
@@ -94,32 +97,19 @@ impl Connection {
         write_stream(&mut self.stream.lock().unwrap().as_ref().unwrap().try_clone().unwrap(), &struct_to_vec(data).unwrap()[..])
     }
 
-    pub fn write_json<T: Serialize>(&self, data: T) -> Result<()> {
+    pub fn write_json<T: Serialize>(&self, data: &T) -> Result<()> {
         self.write(&struct_to_vec(data).unwrap()[..])
     }
 
-    pub fn write_message<T: Serialize>(&self, header: String, data: T) -> Result<()> {
-        self.write_json(Message {
-            header: header,
-            data: struct_to_value(data).unwrap()
-        })
+    pub fn write_message(&self, message: &Message) -> Result<()> {
+        self.write_json::<Message>(message)
     }
 
-    pub fn read_message(&self, header_expected: String) -> Result<T> {
-        let message = self.read_json::<Message>()?;
-        if message.header != header_expected {
-            return Err(anyhow!("期待しているメッセージが送られてきませんでした"));
-        }
-
-        value_to_struct(message.data)
-    }
-
-    pub fn close(&self, message: &str) -> Result<()> {
+    pub fn close(&self) -> Result<()> {
         if self.stream.lock().unwrap().is_none() {
             return Ok(());
         }
         let stream: &mut TcpStream = &mut self.stream.lock().unwrap().as_ref().unwrap().try_clone().unwrap();
-        close_stream(stream, message);
-        Ok(())
+        close_stream(stream)
     }
 }

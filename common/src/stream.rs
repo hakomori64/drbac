@@ -2,17 +2,17 @@ use std::net::{TcpStream, Shutdown};
 use std::io::prelude::*;
 use anyhow::{Result, anyhow};
 
-pub fn read_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize), &str> {
+pub fn read_stream(stream: &mut TcpStream) -> Result<(Vec<u8>, usize)> {
     match seek_stream(stream) {
         Ok((_, 0)) => {
-            Err("コネクションが閉じられました")
+            Err(anyhow!("コネクションが閉じられました"))
         }
         Ok((data, length)) => {
             Ok((data, length))
         }
         Err(_) => {
-            close_stream(stream, "something went wrong");
-            Err("コネクションが閉じられました")
+            close_stream(stream)?;
+            Err(anyhow!("コネクションが閉じられました"))
         }
     }
 }
@@ -53,7 +53,9 @@ pub fn write_stream(stream: &mut TcpStream, data: &[u8]) -> Result<()> {
     Ok(())
 }
 
-pub fn close_stream(stream: &mut TcpStream, message: &str) {
-    write_stream(stream, message.as_bytes()).unwrap();
-    stream.shutdown(Shutdown::Both).expect("コネクションのクローズに失敗しました");
+pub fn close_stream(stream: &mut TcpStream) -> Result<()> {
+    match stream.shutdown(Shutdown::Both) {
+        Ok(_) => Ok(()),
+        Err(_) => Err(anyhow!("コネクションのクローズに失敗しました"))
+    }
 }

@@ -1,16 +1,6 @@
 use anyhow::{Result, anyhow};
 use regex::Regex;
 use std::path::PathBuf;
-use rand_core::OsRng;
-use ed25519_dalek::{
-    PublicKey,
-    SecretKey,
-    Keypair
-};
-use pem::Pem;
-use pem::encode;
-use std::fs::File;
-use std::io::Write;
 use super::super::pki;
 use strum::IntoEnumIterator;
 
