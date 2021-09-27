@@ -7,7 +7,10 @@ use rand_core::OsRng;
 use ed25519_dalek::{
     Keypair,
     PublicKey,
-    SecretKey
+    SecretKey,
+    Signature,
+    Signer,
+    Verifier,
 };
 use sha2::{Sha512, Digest};
 
@@ -25,7 +28,7 @@ pub fn generate_key_pair() -> Result<(Vec<u8>, Vec<u8>)> {
     Ok((secretkey.to_bytes().to_vec(), publickey.to_bytes().to_vec()))
 }
 
-pub fn hash(data: Vec<u8>) -> Result<Vec<u8>> {
+pub fn hash(data: &[u8]) -> Result<Vec<u8>> {
     let mut hasher = Sha512::new();
     hasher.update(data);
     Ok(hasher.finalize().to_vec())
@@ -55,4 +58,21 @@ pub fn create_pem(path: &PathBuf, tag: String, data: Vec<u8>) -> Result<()> {
     File::create(path)?.write_all(encode(&pem).as_bytes())?;
 
     Ok(())
+}
+
+pub fn sign(message: &[u8], secret_key: &[u8]) -> Result<[u8; 64]> {
+    let secret_key = SecretKey::from_bytes(secret_key)?;
+    let public_key: PublicKey = (&secret_key).into();
+    
+    let mut keys = secret_key.as_bytes().clone().to_vec();
+    keys.append(&mut public_key.as_bytes().clone().to_vec());
+    let key_pair = Keypair::from_bytes(&keys)?;
+
+    Ok(key_pair.sign(message).to_bytes())
+}
+
+pub fn verify(signature: [u8; 64], message: &[u8], public_key: &[u8]) -> Result<()> {
+    let public_key = PublicKey::from_bytes(public_key)?;
+    let signature = Signature::new(signature);
+    public_key.verify(message, &signature).map_err(|_| anyhow!("verification failed"))
 }

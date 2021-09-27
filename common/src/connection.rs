@@ -47,7 +47,7 @@ impl Connection {
             Err(_) => return Err(anyhow!("読み込みに失敗しました"))
         };
 
-        println!("receiving data {}...", str::from_utf8(&data[..]).unwrap());
+        println!("receiving data {:?}...", &data[..]);
 
         if self.crypto_module.lock().unwrap().is_none() {
             return Ok(data);
@@ -75,7 +75,7 @@ impl Connection {
     }
 
     pub fn write(&self, data: &[u8]) -> Result<()> {
-        println!("sending data {}...", str::from_utf8(data).unwrap());
+        println!("sending data {:?}...", data);
         if self.stream.lock().unwrap().is_none() {
             return Err(anyhow!("streamの設定に失敗しました"));
         }

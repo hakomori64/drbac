@@ -9,13 +9,15 @@ use common::actors::utils::{
     get_key_contents,
 };
 use common::pki::{
-    hash
+    hash,
+    sign
 };
+use common::crypto::aes::AES;
 use std::str::FromStr;
 use common::messages::Message;
 use super::super::state::State;
 
-pub fn identificate(connection: &mut Connection, state: State) -> Result<State> {
+pub fn identificate(connection: &mut Connection, _state: State) -> Result<State> {
 
     let actor_type: String = io::read_until(
         "actor_type: (entity | role | user) = ",
@@ -34,17 +36,49 @@ pub fn identificate(connection: &mut Connection, state: State) -> Result<State> 
         return Err(anyhow!("正しい形式ではありません"));
     }
 
-    let (_, public_key_content) = get_key_contents(&actor, &name)?;
+    let (secret_key_content, public_key_content) = get_key_contents(&actor, &name)?;
 
-    let public_key_blob = hash(public_key_content)?;
+    let public_key_blob = hash(&public_key_content)?;
 
     connection.write_message(&Message::IdentificateReq1 {
-        name,
-        actor_type,
-        public_key_blob
+        name: name.clone(),
+        actor_type: actor_type.clone(),
+        public_key_blob: public_key_blob.clone()
     })?;
 
     let message = connection.read_json::<Message>()?;
-    println!("{:?}", message);
+
+    if let Message::IdentificateRes1{..} = message {} else {
+        return Err(anyhow!("IdentificateRes1を受け取れませんでした"));
+    }
+
+    let message = [name.as_bytes(), actor_type.as_bytes(), &public_key_blob].concat();
+
+    let signature = sign(&message, &secret_key_content)?;
+
+    connection.write_message(&Message::IdentificateReq2 {
+        name: name.clone(),
+        actor_type: actor_type.clone(),
+        signature: signature.to_vec()
+    })?;
+
+    let common_key = match connection.read_message()? {
+        Message::IdentificateRes2 {common_key} => common_key,
+        _ => return Err(anyhow!("IdentificateRes2を受け取れませんでした"))
+    };
+
+    let key = &common_key;
+    let aes = AES::new(key);
+
+    if connection.set_crypto_module(Box::new(aes)).is_err() {
+        return Err(anyhow!("暗号化モジュールの更新に失敗しました"));
+    }
+
+    let state = State::new(
+        Some(name),
+        Some(actor),
+        Some(secret_key_content)
+    );
+
     Ok(state)
 }

@@ -130,7 +130,11 @@ fn handle_connection(stream: TcpStream) {
 
     let mut connection: Connection = Connection::new();
     connection.set_stream(stream).expect("setting stream failed");
-    let mut state = State::new();
+    let mut state = State::new(
+        None,
+        None,
+        None,
+    );
     loop {
         println!("reading from stream...");
         match connection.read_message() {

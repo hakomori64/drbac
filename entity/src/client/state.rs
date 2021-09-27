@@ -1,6 +1,12 @@
+use common::actors::Actor;
 
-#[derive(Copy, Clone)]
-pub struct State {}
+
+#[derive(Clone)]
+pub struct State {
+    name: Option<String>,
+    actor_type: Option<Actor>,
+    secret_key: Option<Vec<u8>>
+}
 
 impl State {
     /// Create new State
@@ -9,7 +15,15 @@ impl State {
     /// 
     /// # Panic
     /// 
-    pub fn new() -> State {
-        State {}
+    pub fn new(
+        name: Option<String>,
+        actor_type: Option<Actor>,
+        secret_key: Option<Vec<u8>>,
+    ) -> State {
+        State {
+            name,
+            actor_type,
+            secret_key,
+        }
     }
 }

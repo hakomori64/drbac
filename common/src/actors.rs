@@ -5,7 +5,7 @@ use strum::{EnumIter, IntoEnumIterator};
 
 use utils::is_valid_actor_type_str;
 
-#[derive(Debug, EnumIter)]
+#[derive(Debug, EnumIter, Clone)]
 pub enum Actor {
     Entity,
     Role,
