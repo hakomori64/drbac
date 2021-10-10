@@ -1,10 +1,9 @@
-use common::actors::Actor;
+use common::db::models::actor::Actor;
 
 
 #[derive(Clone)]
 pub struct State {
-    name: Option<String>,
-    actor_type: Option<Actor>,
+    actor: Option<Actor>,
     secret_key: Option<Vec<u8>>
 }
 
@@ -16,14 +15,20 @@ impl State {
     /// # Panic
     /// 
     pub fn new(
-        name: Option<String>,
-        actor_type: Option<Actor>,
+        actor: Option<Actor>,
         secret_key: Option<Vec<u8>>,
     ) -> State {
         State {
-            name,
-            actor_type,
+            actor,
             secret_key,
         }
+    }
+
+    pub fn actor(&self) -> Option<Actor> {
+        self.actor.clone()
+    }
+
+    pub fn secret_key(&self) -> Option<Vec<u8>> {
+        self.secret_key.clone()
     }
 }

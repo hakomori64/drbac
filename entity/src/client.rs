@@ -15,7 +15,6 @@ pub fn start_client() {
     let mut state = State::new(
         None,
         None,
-        None
     );
     let mut connection: Connection = Connection::new();
     loop {

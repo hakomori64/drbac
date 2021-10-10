@@ -1,4 +1,6 @@
 use serde::{Serialize, Deserialize};
+use crate::db::models::actor::Actor;
+use crate::actor_type::ActorType;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Message {
@@ -19,7 +21,7 @@ pub enum Message {
     // identificate
     IdentificateReq1 {
         name: String,
-        actor_type: String,
+        actor_type: ActorType,
         public_key_blob: Vec<u8>
     },
     IdentificateRes1 {
@@ -27,11 +29,31 @@ pub enum Message {
     },
     IdentificateReq2 {
         name: String,
-        actor_type: String,
+        actor_type: ActorType,
         signature: Vec<u8>
     },
     IdentificateRes2 {
+        actor: Actor,
         common_key: [u8; 32]
+    },
+
+    // whoami
+    WhoamiReq1 {},
+    WhoamiRes1 {
+        actor: Actor,
+        public_key_blob: Vec<u8>
+    },
+
+    // delegate role
+    DelegateRoleReq1 {
+        subject_id: String,
+        object_id: String,
+        issuer_id: String,
+    },
+    DelegateRoleRes1 {
+        subject_id: String,
+        object_id: String,
+        issuer_id: String,
     },
 
     // error

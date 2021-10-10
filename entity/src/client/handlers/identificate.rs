@@ -2,10 +2,9 @@ use anyhow::{Result, anyhow};
 
 use common::io;
 use common::connection::Connection;
-use common::actors::Actor;
-use common::actors::utils::{
+use common::actor_type::ActorType;
+use common::actor_type::utils::{
     is_valid_format,
-    is_valid_actor_type_str,
     get_key_contents,
 };
 use common::pki::{
@@ -13,36 +12,39 @@ use common::pki::{
     sign
 };
 use common::crypto::aes::AES;
-use std::str::FromStr;
 use common::messages::Message;
 use super::super::state::State;
 
 pub fn identificate(connection: &mut Connection, _state: State) -> Result<State> {
 
-    let actor_type: String = io::read_until(
-        "actor_type: (entity | role | user) = ",
+    let actor_type: i32 = io::read_until(
+        format!("actor_type: (entity ({})| role ({})| user ({})) = ",
+            ActorType::Entity as i32,
+            ActorType::Role as i32,
+            ActorType::User as i32
+        ).as_str(),
         "正しいactor名を入力してください",
-        |val| is_valid_actor_type_str(&val)
+        |val| ActorType::from_i32(*val).is_ok()
     );
-    let actor = Actor::from_str(&actor_type)?;
+    let actor_type = ActorType::from_i32(actor_type)?;
 
     let name: String = io::read_until(
         "name: (String) = ",
         "名前の形式が正しくありません。<Entity>(.<Role|User>)の形式で入力してください",
-        |val| is_valid_format(&actor, &val)
+        |val| is_valid_format(&actor_type, &val)
     );
 
-    if !is_valid_format(&actor, &name) {
+    if !is_valid_format(&actor_type, &name) {
         return Err(anyhow!("正しい形式ではありません"));
     }
 
-    let (secret_key_content, public_key_content) = get_key_contents(&actor, &name)?;
+    let (secret_key_content, public_key_content) = get_key_contents(&actor_type, &name)?;
 
     let public_key_blob = hash(&public_key_content)?;
 
     connection.write_message(&Message::IdentificateReq1 {
         name: name.clone(),
-        actor_type: actor_type.clone(),
+        actor_type: actor_type,
         public_key_blob: public_key_blob.clone()
     })?;
 
@@ -52,7 +54,7 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
         return Err(anyhow!("IdentificateRes1を受け取れませんでした"));
     }
 
-    let message = [name.as_bytes(), actor_type.as_bytes(), &public_key_blob].concat();
+    let message = [name.as_bytes(), &(actor_type as i32).to_ne_bytes(), &public_key_blob].concat();
 
     let signature = sign(&message, &secret_key_content)?;
 
@@ -62,8 +64,9 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
         signature: signature.to_vec()
     })?;
 
-    let common_key = match connection.read_message()? {
-        Message::IdentificateRes2 {common_key} => common_key,
+    // I want id, name, kind, parent_id(if exists)
+    let (actor, common_key) = match connection.read_message()? {
+        Message::IdentificateRes2 {actor, common_key} => (actor, common_key),
         _ => return Err(anyhow!("IdentificateRes2を受け取れませんでした"))
     };
 
@@ -75,7 +78,6 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
     }
 
     let state = State::new(
-        Some(name),
         Some(actor),
         Some(secret_key_content)
     );

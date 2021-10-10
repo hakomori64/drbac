@@ -133,7 +133,6 @@ fn handle_connection(stream: TcpStream) {
     let mut state = State::new(
         None,
         None,
-        None,
     );
     loop {
         println!("reading from stream...");

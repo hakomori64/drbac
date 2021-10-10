@@ -1,5 +1,4 @@
 use std::net::TcpStream;
-use std::str;
 use std::sync::Mutex;
 use std::convert::TryInto;
 use serde::Serialize;
@@ -71,7 +70,9 @@ impl Connection {
     }
 
     pub fn read_message(&self) -> Result<Message> {
-        self.read_json::<Message>()
+        let message = self.read_json::<Message>()?;
+        println!("{:?}", message);
+        Ok(message)
     }
 
     pub fn write(&self, data: &[u8]) -> Result<()> {

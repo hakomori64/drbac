@@ -5,6 +5,10 @@ use super::state::State;
 use super::handlers::connection::connect;
 use super::handlers::crypto_channel::crypto_channel;
 use super::handlers::identificate::identificate;
+use super::handlers::whoami::whoami;
+use super::handlers::roles::{
+    delegate_role
+};
 use super::constants;
 use common::connection::Connection;
 
@@ -54,10 +58,30 @@ pub fn handle_request(connection: &mut Connection, state: State, command: &str) 
             }
         }
         "whoami" => {
-            Ok(state)
+            match whoami(connection, state.clone()) {
+                Ok(state) => {
+                    println!("身分確認に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("身分確認に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
         }
         "delegate role" => {
-            Ok(state)
+            match delegate_role(connection, state.clone()) {
+                Ok(state) => {
+                    println!("ロールの付与に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("ロールの付与に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
         }
         "search role" => {
             Ok(state)
