@@ -14,9 +14,6 @@ use ed25519_dalek::{
 };
 use sha2::{Sha512, Digest};
 
-pub const SECRET_FILE_NAME: &str = "secret.pem";
-pub const PUBLIC_FILE_NAME: &str = "public.pem";
-
 pub fn generate_key_pair() -> Result<(Vec<u8>, Vec<u8>)> {
 
     let mut csprng = OsRng {};

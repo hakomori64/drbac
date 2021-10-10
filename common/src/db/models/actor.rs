@@ -2,7 +2,9 @@ use serde::{Serialize, Deserialize};
 use diesel::sqlite::SqliteConnection;
 use anyhow::{Result, anyhow};
 use regex::Regex;
+use uuid::Uuid;
 
+use crate::db::utils::establish_connection;
 use super::entity::{
     get_entities
 };
@@ -155,6 +157,20 @@ pub fn find_actor(
         1 => Ok(results[0].clone()),
         _ => Err(anyhow!("actorが見つかりませんでした"))
     }
+}
+
+pub fn generate_actor_id() -> Result<String> {
+    let conn = establish_connection()?;
+    let actor_ids = get_actors(&conn)?
+    .iter()
+    .map(|actor| actor.actor_id()).collect::<Vec<String>>();
+    
+    let mut uuid = Uuid::new_v4().to_string();
+    while actor_ids.contains(&uuid) {
+        uuid = Uuid::new_v4().to_string();
+    }
+
+    Ok(uuid)
 }
 
 pub fn is_valid_actor_id_format(actor_id: &String) -> bool {
