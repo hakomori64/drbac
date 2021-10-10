@@ -56,6 +56,22 @@ impl Actor {
             Actor::User { name, .. } => name,
         }.clone()
     }
+
+    pub fn secret_key(&self) -> Option<Vec<u8>> {
+        match self {
+            Actor::Entity { secret_key, .. } => secret_key.clone(),
+            Actor::Role { secret_key, .. } => secret_key.clone(),
+            Actor::User { secret_key, .. } => secret_key.clone(),
+        }
+    }
+
+    pub fn public_key(&self) -> Option<Vec<u8>> {
+        match self {
+            Actor::Entity { public_key, .. } => public_key.clone(),
+            Actor::Role { public_key, .. } => public_key.clone(),
+            Actor::User { public_key, .. } => public_key.clone(),
+        }
+    }
 }
 
 pub fn get_actors(

@@ -1,6 +1,5 @@
 use serde::{Serialize, Deserialize};
 use crate::db::models::actor::Actor;
-use crate::actor_type::ActorType;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum Message {
@@ -20,16 +19,14 @@ pub enum Message {
 
     // identificate
     IdentificateReq1 {
-        name: String,
-        actor_type: ActorType,
+        actor_id: String,
         public_key_blob: Vec<u8>
     },
     IdentificateRes1 {
 
     },
     IdentificateReq2 {
-        name: String,
-        actor_type: ActorType,
+        actor_id: String,
         signature: Vec<u8>
     },
     IdentificateRes2 {

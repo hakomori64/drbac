@@ -2,13 +2,10 @@ use anyhow::{Result, anyhow};
 
 use common::messages::Message;
 use std::convert::TryInto;
-use common::actor_type::utils::{
-    get_public_key_path,
-    get_key_content,
-};
 use common::db::utils::{
     establish_connection
 };
+use common::db::models::actor::find_actor;
 use common::crypto::aes::AES;
 use common::pki::{
     hash,
@@ -19,10 +16,15 @@ use common::connection::Connection;
 use super::super::state::State;
 
 pub fn identificate(connection: &mut Connection, _state: State, data: Message) -> Result<State> {
-    if let Message::IdentificateReq1 { name, actor_type, public_key_blob } = data {
-
-        let public_key_path = get_public_key_path(&actor_type, &name)?;
-        let public_key_content = get_key_content(public_key_path)?;
+    if let Message::IdentificateReq1 { actor_id, public_key_blob } = data {
+        
+        let conn = establish_connection()?;
+        let actor = find_actor(&conn, actor_id.clone())?;
+        let public_key_content = actor.public_key();
+        if public_key_content.is_none() {
+            return Err(anyhow!("public_keyが登録されていません"));
+        }
+        let public_key_content = public_key_content.unwrap();
         let local_public_key_blob = hash(&public_key_content)?;
         
         if public_key_blob != local_public_key_blob {
@@ -35,16 +37,16 @@ pub fn identificate(connection: &mut Connection, _state: State, data: Message) -
         connection.write_message(&Message::IdentificateRes1 {})?;
 
         let message = connection.read_message()?;
-        let (second_name, second_actor_type, signature) = match message {
-            Message::IdentificateReq2 { name, actor_type, signature } => (name, actor_type, signature),
+        let (second_actor_id, signature) = match message {
+            Message::IdentificateReq2 { actor_id, signature } => (actor_id, signature),
             _ => return Err(anyhow!("IdentificateReq2以外が渡されました"))
         };
 
-        if name != second_name || actor_type != second_actor_type {
+        if actor_id != second_actor_id {
             return Err(anyhow!("一回目に送られてきたリクエストと整合が取れません"));
         }
 
-        let message = [name.as_bytes(), &(actor_type as i32).to_ne_bytes(), &public_key_blob].concat();
+        let message = [actor_id.as_bytes(), &public_key_blob].concat();
 
         let signature: [u8; 64] = match signature.try_into() {
             Ok(ba) => ba,
@@ -62,17 +64,6 @@ pub fn identificate(connection: &mut Connection, _state: State, data: Message) -
         let key = &common_key;
         let aes = AES::new(key);
 
-        let conn = match establish_connection() {
-            Ok(conn) => conn,
-            Err(_) => return Err(anyhow!("コネクションの確立に失敗しました"))
-        };
-        println!("here");
-        let actor = match get_actor_by_name(
-            &conn,
-            name.as_str()) {
-            Ok(actor) => actor,
-            Err(_) => return Err(anyhow!("actorの取得に失敗しました"))
-        };
         connection.write_message(&Message::IdentificateRes2 {
             actor: actor.clone(),
             common_key: common_key
