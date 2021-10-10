@@ -7,7 +7,7 @@ use common::db::models::actor::{
     Actor,
     find_actor
 };
-use common::actor_type::utils::is_valid_actor_id_format;
+use common::db::models::actor::is_valid_actor_id_format;
 use common::pki::{
     hash,
     sign

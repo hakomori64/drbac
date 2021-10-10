@@ -1,6 +1,7 @@
 use serde::{Serialize, Deserialize};
 use diesel::sqlite::SqliteConnection;
 use anyhow::{Result, anyhow};
+use regex::Regex;
 
 use super::entity::{
     get_entities
@@ -154,4 +155,9 @@ pub fn find_actor(
         1 => Ok(results[0].clone()),
         _ => Err(anyhow!("actorが見つかりませんでした"))
     }
+}
+
+pub fn is_valid_actor_id_format(actor_id: &String) -> bool {
+    let re = Regex::new(r#"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"#).unwrap();
+    re.is_match(actor_id.as_str())
 }

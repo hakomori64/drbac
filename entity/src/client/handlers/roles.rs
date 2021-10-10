@@ -2,9 +2,7 @@ use anyhow::{Result, anyhow};
 use common::io;
 use common::connection::Connection;
 use common::messages::Message;
-use common::actor_type::utils::{
-    is_valid_actor_id_format
-};
+use common::db::models::actor::is_valid_actor_id_format;
 use super::super::state::State;
 
 pub fn delegate_role(connection: &mut Connection, state: State) -> Result<State> {
