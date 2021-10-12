@@ -7,6 +7,7 @@ use common::db::utils::establish_connection;
 use common::db::models::delegation::{
     create_delegation,
     validate_delegation,
+    get_roles,
 };
 use super::super::state::State;
 
@@ -33,5 +34,20 @@ pub fn delegate_role(connection: &mut Connection, state: State, data: Message) -
         Ok(state)
     } else {
         return Err(anyhow!("DelegateRoleReq1でないリクエストを受け取りました"));
+    }
+}
+
+pub fn search_roles(connection: &mut Connection, state: State, data: Message) -> Result<State> {
+    if let Message::SearchRolesReq1 { subject_id } = data {
+        let conn = establish_connection()?;
+        let subject = find_actor(&conn, subject_id)?;
+        let roles = get_roles(&conn, &subject)?;
+
+        connection.write_message(&Message::SearchRolesRes1 {
+            roles
+        })?;
+        Ok(state)
+    } else {
+        return Err(anyhow!("SearchRolesReq1でないリクエストを受け取りました"));
     }
 }

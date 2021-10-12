@@ -53,6 +53,14 @@ pub enum Message {
         issuer_id: String,
     },
 
+    // search roles
+    SearchRolesReq1 {
+        subject_id: String,
+    },
+    SearchRolesRes1 {
+        roles: Vec<Actor>
+    },
+
     // error
     Error {
         reason: String

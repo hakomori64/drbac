@@ -7,7 +7,8 @@ use super::handlers::crypto_channel::crypto_channel;
 use super::handlers::identificate::identificate;
 use super::handlers::whoami::whoami;
 use super::handlers::roles::{
-    delegate_role
+    delegate_role,
+    search_roles,
 };
 use super::constants;
 use common::connection::Connection;
@@ -84,7 +85,17 @@ pub fn handle_request(connection: &mut Connection, state: State, command: &str) 
             }
         }
         "search role" => {
-            Ok(state)
+            match search_roles(connection, state.clone()) {
+                Ok(state) => {
+                    println!("ロールの検索に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("ロールの検索に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
         }
         "generate key" => {
             Ok(state)

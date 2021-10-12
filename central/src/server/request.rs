@@ -6,7 +6,8 @@ use super::handlers::crypto_channel::crypto_channel;
 use super::handlers::identificate::identificate;
 use super::handlers::whoami::whoami;
 use super::handlers::roles::{
-    delegate_role
+    delegate_role,
+    search_roles,
 };
 use super::state::State;
 
@@ -66,11 +67,19 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         },
-        /*
-        "SEARCH_ROLE_REQ1" => {
-            Some(state)
+        Message::SearchRolesReq1 {..} => {
+            match search_roles(connection, state, message) {
+                Ok(state) => {
+                    println!("ロールの検索に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("ロールの検索に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
         }
-        */
         _ => {
             return Err(anyhow!("認識できないリクエストです"));
         }
