@@ -32,3 +32,9 @@ CREATE TABLE delegations (
     object_id VARCHAR NOT NULL,
     issuer_id VARCHAR NOT NULL
 );
+
+CREATE TABLE entity_central_relation (
+  id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  entity_id VARCHAR NOT NULL,
+  central_key BLOB NOT NULL
+);

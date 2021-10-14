@@ -61,6 +61,15 @@ pub enum Message {
         roles: Vec<Actor>
     },
 
+    RegisterEntityReq1 {
+        name: String,
+        public_key: Vec<u8>
+    },
+    RegisterEntityRes1 {
+        entity: Actor,
+        central_public_key: Vec<u8>
+    },
+
     // error
     Error {
         reason: String

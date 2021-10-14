@@ -18,6 +18,14 @@ table! {
 }
 
 table! {
+    entity_central_relation (id) {
+        id -> Integer,
+        entity_id -> Text,
+        central_key -> Binary,
+    }
+}
+
+table! {
     roles (id) {
         id -> Integer,
         actor_id -> Text,
@@ -43,6 +51,7 @@ table! {
 allow_tables_to_appear_in_same_query!(
     delegations,
     entities,
+    entity_central_relation,
     roles,
     users,
 );

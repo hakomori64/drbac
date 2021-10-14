@@ -10,6 +10,9 @@ use super::handlers::roles::{
     delegate_role,
     search_roles,
 };
+use super::handlers::registration::{
+    register_entity,
+};
 use super::constants;
 use common::connection::Connection;
 
@@ -92,6 +95,19 @@ pub fn handle_request(connection: &mut Connection, state: State, command: &str) 
                 }
                 Err(err) => {
                     println!("ロールの検索に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        }
+        "register entity" => {
+            match register_entity(connection, state.clone()) {
+                Ok(state) => {
+                    println!("CentralサーバーへのEntityの登録に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("CentralサーバーへのEntityの登録に失敗しました");
                     println!("{}", err);
                     Err(err)
                 }

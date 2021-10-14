@@ -9,6 +9,9 @@ use super::handlers::roles::{
     delegate_role,
     search_roles,
 };
+use super::handlers::registration::{
+    register_entity,
+};
 use super::state::State;
 
 
@@ -75,6 +78,19 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
                 Err(err) => {
                     println!("ロールの検索に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        },
+        Message::RegisterEntityReq1 {..} => {
+            match register_entity(connection, state, message) {
+                Ok(state) => {
+                    println!("Entityの登録に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("Entityの登録に失敗しました");
                     println!("{}", err);
                     Err(err)
                 }
