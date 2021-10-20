@@ -12,6 +12,8 @@ use super::handlers::roles::{
 };
 use super::handlers::registration::{
     register_entity,
+    register_role,
+    register_user,
 };
 use super::constants;
 use common::connection::Connection;
@@ -112,7 +114,33 @@ pub fn handle_request(connection: &mut Connection, state: State, command: &str) 
                     Err(err)
                 }
             }
-        }
+        },
+        "register role" => {
+            match register_role(connection, state.clone()) {
+                Ok(state) => {
+                    println!("CentralサーバーへのRoleの登録に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("CentralサーバーへのRoleの登録に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        },
+        "register user" => {
+            match register_user(connection, state.clone()) {
+                Ok(state) => {
+                    println!("CentralサーバーへのUserの登録に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("CentralサーバーへのUserの登録に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        },
         "generate key" => {
             Ok(state)
         }

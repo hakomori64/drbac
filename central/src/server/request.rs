@@ -11,6 +11,8 @@ use super::handlers::roles::{
 };
 use super::handlers::registration::{
     register_entity,
+    register_role,
+    register_user,
 };
 use super::state::State;
 
@@ -95,7 +97,33 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                     Err(err)
                 }
             }
-        }
+        },
+        Message::RegisterRoleReq1 {..} => {
+            match register_role(connection, state, message) {
+                Ok(state) => {
+                    println!("Roleの登録に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("Roleの登録に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        },
+        Message::RegisterUserReq1 {..} => {
+            match register_user(connection, state, message) {
+                Ok(state) => {
+                    println!("Userの登録に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("Userの登録に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        },
         _ => {
             return Err(anyhow!("認識できないリクエストです"));
         }

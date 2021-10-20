@@ -70,6 +70,23 @@ pub enum Message {
         central_public_key: Vec<u8>
     },
 
+    RegisterRoleReq1 {
+        name: String,
+        is_assignment: bool,
+        public_key: Vec<u8>
+    },
+    RegisterRoleRes1 {
+        role: Actor,
+    },
+
+    RegisterUserReq1 {
+        name: String,
+        public_key: Vec<u8>
+    },
+    RegisterUserRes1 {
+        user: Actor
+    },
+
     // error
     Error {
         reason: String
