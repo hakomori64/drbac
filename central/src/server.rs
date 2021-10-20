@@ -135,7 +135,7 @@ pub fn start_server(host: &str, port: i32) {
 fn handle_connection(stream: TcpStream) {
     let secret_path: PathBuf = ["secret_key.pem"].iter().collect();
     let public_path: PathBuf = ["public_key.pem"].iter().collect();
-    let (_, public_key) = if secret_path.exists() && public_path.exists() {
+    let (secret_key, public_key) = if secret_path.exists() && public_path.exists() {
         (read_pem(&secret_path).unwrap(), read_pem(&public_path).unwrap())
     } else if !secret_path.exists() && !public_path.exists() {
         let (secret_key, public_key) = generate_key_pair().unwrap();
@@ -151,6 +151,7 @@ fn handle_connection(stream: TcpStream) {
     connection.set_stream(stream).expect("setting stream failed");
     let mut state = State::new(
         None,
+        Some(secret_key),
         Some(public_key),
     );
     loop {

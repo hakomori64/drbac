@@ -1,5 +1,5 @@
+use std::convert::TryInto;
 use anyhow::{Result, anyhow};
-
 use common::io;
 use common::connection::Connection;
 use common::db::utils::establish_connection;
@@ -8,9 +8,11 @@ use common::db::models::actor::{
     find_actor
 };
 use common::db::models::actor::is_valid_actor_id_format;
+use common::db::models::entity_central_relation::get_relation;
 use common::pki::{
     hash,
-    sign
+    sign,
+    verify,
 };
 use common::crypto::aes::AES;
 use common::messages::Message;
@@ -60,10 +62,39 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
         signature: signature.to_vec()
     })?;
 
-    // I want id, name, kind, parent_id(if exists)
-    let (actor, common_key) = match connection.read_message()? {
-        Message::IdentificateRes2 {actor, common_key} => (actor, common_key),
+    let server_signature = match connection.read_message()? {
+        Message::IdentificateRes2 {server_signature} => server_signature,
         _ => return Err(anyhow!("IdentificateRes2を受け取れませんでした"))
+    };
+
+    let server_signature: [u8; 64] = match server_signature.try_into() {
+        Ok(ba) => ba,
+        Err(_) => return Err(anyhow!("server_signatureの形式が正しくありません"))
+    };
+
+    let entity_id = match actor {
+        Actor::Entity { actor_id, .. } => actor_id,
+        Actor::Role { entity_id, .. } => entity_id,
+        Actor::User { entity_id, .. } => entity_id
+    };
+
+    let relations = get_relation(&conn, Some(entity_id), None)?;
+    if relations.len() != 1 {
+        return Err(anyhow!("entityを複数のホストに対して登録しているか、登録された形跡がありません"));
+    }
+
+    match verify(server_signature, &message, &relations[0].central_key) {
+        Err(_) => {
+            return Err(anyhow!("centralの認証に失敗しました"));
+        },
+        _ => {}
+    }
+
+    connection.write_message(&Message::IdentificateReq3 {})?;
+
+    let (actor, common_key) = match connection.read_message()? {
+        Message::IdentificateRes3 {actor, common_key} => (actor, common_key),
+        _ => return Err(anyhow!("IdentificateRes3を受け取れませんでした"))
     };
 
     let key = &common_key;

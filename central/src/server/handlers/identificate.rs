@@ -9,13 +9,14 @@ use common::db::models::actor::find_actor;
 use common::crypto::aes::AES;
 use common::pki::{
     hash,
+    sign,
     verify,
 };
 use rand::Rng;
 use common::connection::Connection;
 use super::super::state::State;
 
-pub fn identificate(connection: &mut Connection, _state: State, data: Message) -> Result<State> {
+pub fn identificate(connection: &mut Connection, state: State, data: Message) -> Result<State> {
     if let Message::IdentificateReq1 { actor_id, public_key_blob } = data {
         
         let conn = establish_connection()?;
@@ -34,7 +35,11 @@ pub fn identificate(connection: &mut Connection, _state: State, data: Message) -
             return Err(anyhow!("public key blobが一致しません"));
         }
 
-        connection.write_message(&Message::IdentificateRes1 {})?;
+        let server_public_key_blob = hash(&state.public_key.clone().unwrap())?;
+
+        connection.write_message(&Message::IdentificateRes1 {
+            server_public_key_blob
+        })?;
 
         let message = connection.read_message()?;
         let (second_actor_id, signature) = match message {
@@ -60,11 +65,22 @@ pub fn identificate(connection: &mut Connection, _state: State, data: Message) -
             _ => {}
         };
 
+        let server_signature = sign(&message, &state.secret_key.clone().unwrap())?;
+
+        connection.write_message(&Message::IdentificateRes2 {
+            server_signature: server_signature.to_vec()
+        })?;
+
+        match connection.read_message()? {
+            Message::IdentificateReq3 {..} => {},
+            _ => return Err(anyhow!("IdentiricateReq3でないリクエストを受け取りました"))
+        }
+
         let common_key = rand::thread_rng().gen::<[u8; 32]>();
         let key = &common_key;
         let aes = AES::new(key);
 
-        connection.write_message(&Message::IdentificateRes2 {
+        connection.write_message(&Message::IdentificateRes3 {
             actor: actor.clone(),
             common_key: common_key
         })?;
@@ -74,7 +90,8 @@ pub fn identificate(connection: &mut Connection, _state: State, data: Message) -
 
         let state = State::new(
             Some(actor),
-            Some(public_key_content)
+            state.secret_key.clone(),
+            state.public_key.clone()
         );
 
         return Ok(state);
