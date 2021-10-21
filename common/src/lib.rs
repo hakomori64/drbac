@@ -11,6 +11,8 @@ pub mod messages;
 pub mod pki;
 pub mod db;
 pub mod schema;
+pub mod thread_pool;
+pub mod socket_server;
 
 #[cfg(test)]
 mod tests {
