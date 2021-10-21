@@ -17,7 +17,7 @@ use common::connection::Connection;
 use super::super::state::State;
 
 pub fn identificate(connection: &mut Connection, state: State, data: Message) -> Result<State> {
-    if let Message::IdentificateReq1 { actor_id, public_key_blob } = data {
+    if let Message::IdentificateReq1 { actor_id, signature } = data {
         
         let conn = establish_connection()?;
         let actor = find_actor(&conn, actor_id.clone())?;
@@ -26,31 +26,8 @@ pub fn identificate(connection: &mut Connection, state: State, data: Message) ->
             return Err(anyhow!("public_keyが登録されていません"));
         }
         let public_key_content = public_key_content.unwrap();
-        let local_public_key_blob = hash(&public_key_content)?;
+        let public_key_blob = hash(&public_key_content)?;
         
-        if public_key_blob != local_public_key_blob {
-            connection.write_message(&Message::Error {
-                reason: String::from("public_key_blobが一致しません")
-            })?;
-            return Err(anyhow!("public key blobが一致しません"));
-        }
-
-        let server_public_key_blob = hash(&state.public_key.clone().unwrap())?;
-
-        connection.write_message(&Message::IdentificateRes1 {
-            server_public_key_blob
-        })?;
-
-        let message = connection.read_message()?;
-        let (second_actor_id, signature) = match message {
-            Message::IdentificateReq2 { actor_id, signature } => (actor_id, signature),
-            _ => return Err(anyhow!("IdentificateReq2以外が渡されました"))
-        };
-
-        if actor_id != second_actor_id {
-            return Err(anyhow!("一回目に送られてきたリクエストと整合が取れません"));
-        }
-
         let message = [actor_id.as_bytes(), &public_key_blob].concat();
 
         let signature: [u8; 64] = match signature.try_into() {
@@ -67,20 +44,20 @@ pub fn identificate(connection: &mut Connection, state: State, data: Message) ->
 
         let server_signature = sign(&message, &state.secret_key.clone().unwrap())?;
 
-        connection.write_message(&Message::IdentificateRes2 {
+        connection.write_message(&Message::IdentificateRes1 {
             server_signature: server_signature.to_vec()
         })?;
 
         match connection.read_message()? {
-            Message::IdentificateReq3 {..} => {},
-            _ => return Err(anyhow!("IdentiricateReq3でないリクエストを受け取りました"))
+            Message::IdentificateReq2 {..} => {},
+            _ => return Err(anyhow!("IdentiricateReq2でないリクエストを受け取りました"))
         }
 
         let common_key = rand::thread_rng().gen::<[u8; 32]>();
         let key = &common_key;
         let aes = AES::new(key);
 
-        connection.write_message(&Message::IdentificateRes3 {
+        connection.write_message(&Message::IdentificateRes2 {
             actor: actor.clone(),
             common_key: common_key
         })?;

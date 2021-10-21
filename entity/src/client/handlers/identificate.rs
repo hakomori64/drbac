@@ -42,28 +42,17 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
 
     let public_key_blob = hash(&public_key_content)?;
 
-    connection.write_message(&Message::IdentificateReq1 {
-        actor_id: actor_id.clone(),
-        public_key_blob: public_key_blob.clone()
-    })?;
-
-    let message = connection.read_json::<Message>()?;
-
-    if let Message::IdentificateRes1{..} = message {} else {
-        return Err(anyhow!("IdentificateRes1を受け取れませんでした"));
-    }
-
     let message = [actor_id.as_bytes(), &public_key_blob].concat();
 
     let signature = sign(&message, &secret_key_content)?;
 
-    connection.write_message(&Message::IdentificateReq2 {
+    connection.write_message(&Message::IdentificateReq1 {
         actor_id: actor_id.clone(),
         signature: signature.to_vec()
     })?;
 
     let server_signature = match connection.read_message()? {
-        Message::IdentificateRes2 {server_signature} => server_signature,
+        Message::IdentificateRes1 {server_signature} => server_signature,
         _ => return Err(anyhow!("IdentificateRes2を受け取れませんでした"))
     };
 
@@ -90,10 +79,10 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
         _ => {}
     }
 
-    connection.write_message(&Message::IdentificateReq3 {})?;
+    connection.write_message(&Message::IdentificateReq2 {})?;
 
     let (actor, common_key) = match connection.read_message()? {
-        Message::IdentificateRes3 {actor, common_key} => (actor, common_key),
+        Message::IdentificateRes2 {actor, common_key} => (actor, common_key),
         _ => return Err(anyhow!("IdentificateRes3を受け取れませんでした"))
     };
 

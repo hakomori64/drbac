@@ -20,20 +20,13 @@ pub enum Message {
     // identificate
     IdentificateReq1 {
         actor_id: String,
-        public_key_blob: Vec<u8>
-    },
-    IdentificateRes1 {
-        server_public_key_blob: Vec<u8>
-    },
-    IdentificateReq2 {
-        actor_id: String,
         signature: Vec<u8>
     },
-    IdentificateRes2 {
+    IdentificateRes1 {
         server_signature: Vec<u8>
     },
-    IdentificateReq3 {},
-    IdentificateRes3 {
+    IdentificateReq2 {},
+    IdentificateRes2 {
         actor: Actor,
         common_key: [u8; 32]
     },

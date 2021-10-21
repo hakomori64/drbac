@@ -1,8 +1,6 @@
 use std::net::TcpStream;
-use std::net::TcpListener;
 use std::path::PathBuf;
 
-use common::thread_pool::ThreadPool;
 use common::connection::Connection;
 use common::messages::Message as DRBACMessage;
 use common::pki::{
@@ -18,21 +16,7 @@ mod handlers;
 use state::State;
 
 
-pub fn start_server(host: &str, port: i32) {
-    let listener = TcpListener::bind(format!("{}:{}", host, port)).unwrap();
-    
-    let pool = ThreadPool::new(5);
-    
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
-        
-        pool.execute(|| {
-            handle_connection(stream);
-        });
-    }
-}
-
-fn handle_connection(stream: TcpStream) {
+pub fn handle_connection(stream: TcpStream) {
     let secret_path: PathBuf = ["secret_key.pem"].iter().collect();
     let public_path: PathBuf = ["public_key.pem"].iter().collect();
     let (secret_key, public_key) = if secret_path.exists() && public_path.exists() {

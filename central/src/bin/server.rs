@@ -1,6 +1,8 @@
-use central::server;
+use common::socket_server::SocketServer;
+use central::server::handle_connection;
 
 fn main() {
     println!("starting central server...");
-    server::start_server("localhost", 8080);
+    let socket_server = SocketServer::new("localhost", 8080);
+    socket_server.start(handle_connection);
 }
