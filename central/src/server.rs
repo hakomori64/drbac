@@ -8,12 +8,14 @@ use common::pki::{
     create_pem,
     generate_key_pair,
 };
+use common::enums::ServerType;
 
 mod request;
 mod state;
 mod handlers;
 
 use state::State;
+use common::handlers::server::crypto_channel::crypto_channel;
 
 
 pub fn handle_connection(stream: TcpStream) {
@@ -38,6 +40,19 @@ pub fn handle_connection(stream: TcpStream) {
         Some(secret_key),
         Some(public_key),
     );
+    // encrypt channel here
+    state = match crypto_channel(&mut connection, ServerType::Central) {
+        Ok(_) => {
+            println!("通信の暗号化に成功しました");
+            state
+        },
+        Err(err) => {
+            println!("通信の暗号化に失敗しました");
+            println!("{}", err);
+            return;
+        }
+    };
+
     loop {
         println!("reading from stream...");
         match connection.read_message() {

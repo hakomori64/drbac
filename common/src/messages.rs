@@ -1,13 +1,15 @@
 use serde::{Serialize, Deserialize};
 use crate::db::models::actor::Actor;
+use crate::enums::ServerType;
 
 pub trait Message {}
 
+impl Message for CommonMessage {}
 impl Message for VerticalMessage {}
 impl Message for HorizontalMessage {}
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum VerticalMessage {
+pub enum CommonMessage {
     // crypto channel
     CryptoChannelReq1 {
         public_key: [u8; 32]
@@ -19,8 +21,12 @@ pub enum VerticalMessage {
         ping: String
     },
     CryptoChannelRes2 {
-        ping: String
+        server_type: ServerType
     },
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum VerticalMessage {
 
     // identificate
     IdentificateReq1 {
@@ -97,19 +103,6 @@ pub enum VerticalMessage {
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub enum HorizontalMessage {
-    // crypto channel
-    CryptoChannelReq1 {
-        public_key: [u8; 32]
-    },
-    CryptoChannelRes1 {
-        public_key: [u8; 32]
-    },
-    CryptoChannelReq2 {
-        ping: String
-    },
-    CryptoChannelRes2 {
-        ping: String
-    },
 
     // error
     Error {

@@ -2,6 +2,7 @@
 extern crate diesel;
 extern crate dotenv;
 
+pub mod enums;
 pub mod stream;
 pub mod encoding;
 pub mod io;
@@ -13,6 +14,7 @@ pub mod db;
 pub mod schema;
 pub mod thread_pool;
 pub mod socket_server;
+pub mod handlers;
 
 #[cfg(test)]
 mod tests {

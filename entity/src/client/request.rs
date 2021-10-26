@@ -1,7 +1,6 @@
 use anyhow::{Result};
 
 use super::state::State;
-use super::handlers::crypto_channel::crypto_channel;
 use super::handlers::identificate::identificate;
 use super::handlers::whoami::whoami;
 use super::handlers::roles::{
@@ -18,19 +17,6 @@ use common::connection::Connection;
 
 pub fn handle_request(connection: &mut Connection, state: State, command: &str) -> Result<State> {
     match command {
-        "encrypt channel" => {
-            match crypto_channel(connection, state.clone()) {
-                Ok(state) => {
-                    println!("通信の暗号化に成功しました");
-                    Ok(state)
-                }
-                Err(err) => {
-                    println!("通信の暗号化に失敗しました");
-                    println!("{}", err);
-                    Err(err)
-                }
-            }
-        }
         "identificate" => {
             match identificate(connection, state.clone()) {
                 Ok(state) => {

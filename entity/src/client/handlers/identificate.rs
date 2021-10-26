@@ -95,7 +95,8 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
 
     let state = State::new(
         Some(actor),
-        Some(secret_key_content)
+        Some(secret_key_content),
+        None,
     );
 
     Ok(state)
