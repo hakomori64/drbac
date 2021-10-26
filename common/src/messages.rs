@@ -1,8 +1,13 @@
 use serde::{Serialize, Deserialize};
 use crate::db::models::actor::Actor;
 
+pub trait Message {}
+
+impl Message for VerticalMessage {}
+impl Message for HorizontalMessage {}
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub enum Message {
+pub enum VerticalMessage {
     // crypto channel
     CryptoChannelReq1 {
         public_key: [u8; 32]
@@ -82,6 +87,28 @@ pub enum Message {
     },
     RegisterUserRes1 {
         user: Actor
+    },
+
+    // error
+    Error {
+        reason: String
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum HorizontalMessage {
+    // crypto channel
+    CryptoChannelReq1 {
+        public_key: [u8; 32]
+    },
+    CryptoChannelRes1 {
+        public_key: [u8; 32]
+    },
+    CryptoChannelReq2 {
+        ping: String
+    },
+    CryptoChannelRes2 {
+        ping: String
     },
 
     // error

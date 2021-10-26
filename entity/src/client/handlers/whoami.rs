@@ -2,13 +2,13 @@ use anyhow::{Result, anyhow};
 
 use common::connection::Connection;
 use super::super::state::State;
-use common::messages::Message;
+use common::messages::VerticalMessage;
 
 pub fn whoami(connection: &mut Connection, state: State) -> Result<State> {
 
-    connection.write_message(&Message::WhoamiReq1 {})?;
+    connection.write_message(&VerticalMessage::WhoamiReq1 {})?;
     let (actor, public_key_blob) = match connection.read_message()? {
-        Message::WhoamiRes1 { actor, public_key_blob } => (actor, public_key_blob),
+        VerticalMessage::WhoamiRes1 { actor, public_key_blob } => (actor, public_key_blob),
         _ => return Err(anyhow!("WhoamiRes1ではないメッセージを受信しました"))
     };
 

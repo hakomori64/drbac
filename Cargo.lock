@@ -376,6 +376,7 @@ name = "main"
 version = "0.1.0"
 dependencies = [
  "central",
+ "common",
  "entity",
  "tokio",
 ]

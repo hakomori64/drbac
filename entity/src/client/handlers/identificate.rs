@@ -15,7 +15,7 @@ use common::pki::{
     verify,
 };
 use common::crypto::aes::AES;
-use common::messages::Message;
+use common::messages::VerticalMessage;
 use super::super::state::State;
 
 pub fn identificate(connection: &mut Connection, _state: State) -> Result<State> {
@@ -46,13 +46,13 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
 
     let signature = sign(&message, &secret_key_content)?;
 
-    connection.write_message(&Message::IdentificateReq1 {
+    connection.write_message(&VerticalMessage::IdentificateReq1 {
         actor_id: actor_id.clone(),
         signature: signature.to_vec()
     })?;
 
     let server_signature = match connection.read_message()? {
-        Message::IdentificateRes1 {server_signature} => server_signature,
+        VerticalMessage::IdentificateRes1 {server_signature} => server_signature,
         _ => return Err(anyhow!("IdentificateRes2を受け取れませんでした"))
     };
 
@@ -79,10 +79,10 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
         _ => {}
     }
 
-    connection.write_message(&Message::IdentificateReq2 {})?;
+    connection.write_message(&VerticalMessage::IdentificateReq2 {})?;
 
     let (actor, common_key) = match connection.read_message()? {
-        Message::IdentificateRes2 {actor, common_key} => (actor, common_key),
+        VerticalMessage::IdentificateRes2 {actor, common_key} => (actor, common_key),
         _ => return Err(anyhow!("IdentificateRes3を受け取れませんでした"))
     };
 

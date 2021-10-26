@@ -1,4 +1,5 @@
 use std::env;
+use common::socket_server::SocketServer;
 use central::server;
 use entity::client;
 
@@ -12,7 +13,8 @@ async fn main() {
     match args[1].as_str() {
         "central" => {
             println!("starting central server...");
-            server::start_server("localhost", 8080);
+            let socket_server = SocketServer::new("localhost", 8080);
+            socket_server.start(server::handle_connection);
         }
         "entity" => {
             println!("starting client...");

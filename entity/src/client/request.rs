@@ -1,8 +1,6 @@
 use anyhow::{Result};
 
-use common::io;
 use super::state::State;
-use super::handlers::connection::connect;
 use super::handlers::crypto_channel::crypto_channel;
 use super::handlers::identificate::identificate;
 use super::handlers::whoami::whoami;
@@ -20,23 +18,6 @@ use common::connection::Connection;
 
 pub fn handle_request(connection: &mut Connection, state: State, command: &str) -> Result<State> {
     match command {
-        "connect" => {
-            io::write("host: string = ");
-            let host: String = io::read_line();
-            io::write("port: int = ");
-            let port: i32 = io::read_line();
-            match connect(connection, state.clone(), host.as_str(), port) {
-                Ok(state) => {
-                    println!("コネクションの確立に成功しました。");
-                    Ok(state)
-                }
-                Err(err) => {
-                    println!("コネクションの確立に失敗しました");
-                    println!("{}", err);
-                    Err(err)
-                }
-            }
-        }
         "encrypt channel" => {
             match crypto_channel(connection, state.clone()) {
                 Ok(state) => {

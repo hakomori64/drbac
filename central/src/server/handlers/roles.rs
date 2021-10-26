@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
 
-use common::messages::Message;
+use common::messages::VerticalMessage;
 use common::connection::Connection;
 use common::db::models::actor::find_actor;
 use common::db::utils::establish_connection;
@@ -12,8 +12,8 @@ use common::db::models::delegation::{
 use super::super::state::State;
 
 
-pub fn delegate_role(connection: &mut Connection, state: State, data: Message) -> Result<State> {
-    if let Message::DelegateRoleReq1 { subject_id, object_id, issuer_id } = data {
+pub fn delegate_role(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    if let VerticalMessage::DelegateRoleReq1 { subject_id, object_id, issuer_id } = data {
         let conn = establish_connection()?;
         let subject = find_actor(&conn, subject_id.clone())?;
         let object = find_actor(&conn, object_id.clone())?;
@@ -25,7 +25,7 @@ pub fn delegate_role(connection: &mut Connection, state: State, data: Message) -
 
         create_delegation(&conn, &subject, &object, &issuer)?;
 
-        connection.write_message(&Message::DelegateRoleRes1 {
+        connection.write_message(&VerticalMessage::DelegateRoleRes1 {
             subject_id,
             object_id,
             issuer_id,
@@ -37,13 +37,13 @@ pub fn delegate_role(connection: &mut Connection, state: State, data: Message) -
     }
 }
 
-pub fn search_roles(connection: &mut Connection, state: State, data: Message) -> Result<State> {
-    if let Message::SearchRolesReq1 { subject_id } = data {
+pub fn search_roles(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    if let VerticalMessage::SearchRolesReq1 { subject_id } = data {
         let conn = establish_connection()?;
         let subject = find_actor(&conn, subject_id)?;
         let roles = get_roles(&conn, &subject)?;
 
-        connection.write_message(&Message::SearchRolesRes1 {
+        connection.write_message(&VerticalMessage::SearchRolesRes1 {
             roles
         })?;
         Ok(state)

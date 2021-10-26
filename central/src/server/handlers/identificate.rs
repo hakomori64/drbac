@@ -1,6 +1,6 @@
 use anyhow::{Result, anyhow};
 
-use common::messages::Message;
+use common::messages::VerticalMessage;
 use std::convert::TryInto;
 use common::db::utils::{
     establish_connection
@@ -16,8 +16,8 @@ use rand::Rng;
 use common::connection::Connection;
 use super::super::state::State;
 
-pub fn identificate(connection: &mut Connection, state: State, data: Message) -> Result<State> {
-    if let Message::IdentificateReq1 { actor_id, signature } = data {
+pub fn identificate(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    if let VerticalMessage::IdentificateReq1 { actor_id, signature } = data {
         
         let conn = establish_connection()?;
         let actor = find_actor(&conn, actor_id.clone())?;
@@ -44,12 +44,12 @@ pub fn identificate(connection: &mut Connection, state: State, data: Message) ->
 
         let server_signature = sign(&message, &state.secret_key.clone().unwrap())?;
 
-        connection.write_message(&Message::IdentificateRes1 {
+        connection.write_message(&VerticalMessage::IdentificateRes1 {
             server_signature: server_signature.to_vec()
         })?;
 
         match connection.read_message()? {
-            Message::IdentificateReq2 {..} => {},
+            VerticalMessage::IdentificateReq2 {..} => {},
             _ => return Err(anyhow!("IdentiricateReq2でないリクエストを受け取りました"))
         }
 
@@ -57,7 +57,7 @@ pub fn identificate(connection: &mut Connection, state: State, data: Message) ->
         let key = &common_key;
         let aes = AES::new(key);
 
-        connection.write_message(&Message::IdentificateRes2 {
+        connection.write_message(&VerticalMessage::IdentificateRes2 {
             actor: actor.clone(),
             common_key: common_key
         })?;

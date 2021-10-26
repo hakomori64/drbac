@@ -1,3 +1,4 @@
+use std::fmt::Debug;
 use std::net::TcpStream;
 use std::sync::Mutex;
 use std::convert::TryInto;
@@ -69,8 +70,10 @@ impl Connection {
         vec_to_struct(data)
     }
 
-    pub fn read_message(&self) -> Result<Message> {
-        let message = self.read_json::<Message>()?;
+    pub fn read_message<T>(&self) -> Result<T>
+    where T: Message + DeserializeOwned + Debug
+    {
+        let message = self.read_json::<T>()?;
         println!("{:?}", message);
         Ok(message)
     }
@@ -102,8 +105,10 @@ impl Connection {
         self.write(&struct_to_vec(data).unwrap()[..])
     }
 
-    pub fn write_message(&self, message: &Message) -> Result<()> {
-        self.write_json::<Message>(message)
+    pub fn write_message<T>(&self, message: &T) -> Result<()>
+    where T: Message + Serialize
+    {
+        self.write_json::<T>(message)
     }
 
     pub fn close(&self) -> Result<()> {

@@ -1,5 +1,5 @@
 use common::connection::Connection;
-use common::messages::Message;
+use common::messages::VerticalMessage;
 use anyhow::{Result, anyhow};
 
 use super::handlers::crypto_channel::crypto_channel;
@@ -17,10 +17,10 @@ use super::handlers::registration::{
 use super::state::State;
 
 
-pub fn handle_request(connection: &mut Connection, state: State, message: Message) -> Result<State> {
+pub fn handle_request(connection: &mut Connection, state: State, message: VerticalMessage) -> Result<State> {
 
     match message {
-        Message::CryptoChannelReq1 {..} => {
+        VerticalMessage::CryptoChannelReq1 {..} => {
             match crypto_channel(connection, state, message) {
                 Ok(state) => {
                     println!("暗号化通信の設定に成功しました");
@@ -33,7 +33,7 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         }
-        Message::IdentificateReq1 {..} => {
+        VerticalMessage::IdentificateReq1 {..} => {
             match identificate(connection, state, message) {
                 Ok(state) => {
                     println!("身分証明に成功しました");
@@ -46,7 +46,7 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         }
-        Message::WhoamiReq1 {..} => {
+        VerticalMessage::WhoamiReq1 {..} => {
             match whoami(connection, state, message) {
                 Ok(state) => {
                     println!("身分確認に成功しました");
@@ -59,7 +59,7 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         },
-        Message::DelegateRoleReq1 {..} => {
+        VerticalMessage::DelegateRoleReq1 {..} => {
             match delegate_role(connection, state, message) {
                 Ok(state) => {
                     println!("ロールの付与に成功しました");
@@ -72,7 +72,7 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         },
-        Message::SearchRolesReq1 {..} => {
+        VerticalMessage::SearchRolesReq1 {..} => {
             match search_roles(connection, state, message) {
                 Ok(state) => {
                     println!("ロールの検索に成功しました");
@@ -85,7 +85,7 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         },
-        Message::RegisterEntityReq1 {..} => {
+        VerticalMessage::RegisterEntityReq1 {..} => {
             match register_entity(connection, state, message) {
                 Ok(state) => {
                     println!("Entityの登録に成功しました");
@@ -98,7 +98,7 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         },
-        Message::RegisterRoleReq1 {..} => {
+        VerticalMessage::RegisterRoleReq1 {..} => {
             match register_role(connection, state, message) {
                 Ok(state) => {
                     println!("Roleの登録に成功しました");
@@ -111,7 +111,7 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Messag
                 }
             }
         },
-        Message::RegisterUserReq1 {..} => {
+        VerticalMessage::RegisterUserReq1 {..} => {
             match register_user(connection, state, message) {
                 Ok(state) => {
                     println!("Userの登録に成功しました");

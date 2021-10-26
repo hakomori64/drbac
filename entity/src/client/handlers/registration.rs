@@ -1,7 +1,7 @@
 use anyhow::{Result, anyhow};
 use common::io;
 use common::connection::Connection;
-use common::messages::Message;
+use common::messages::VerticalMessage;
 use common::db::utils::establish_connection;
 use common::db::models::actor::Actor;
 use common::db::models::entity::create_entity;
@@ -21,14 +21,14 @@ pub fn register_entity(connection: &mut Connection, state: State) -> Result<Stat
 
     let (secret_key, public_key) = generate_key_pair()?;
 
-    connection.write_message(&Message::RegisterEntityReq1 {
+    connection.write_message(&VerticalMessage::RegisterEntityReq1 {
         name,
         public_key: public_key.clone()
     })?;
 
     match connection.read_message()? {
         // TODO central_public_keyを使ってサーバーを信頼するかどうか決める
-        Message::RegisterEntityRes1 { entity, central_public_key } => {
+        VerticalMessage::RegisterEntityRes1 { entity, central_public_key } => {
             // 受け取った内容をローカルのDBに登録する
             let conn = establish_connection()?;
             create_entity(&conn, entity.actor_id(), entity.name(), Some(secret_key), Some(public_key))?;
@@ -56,14 +56,14 @@ pub fn register_role(connection: &mut Connection, state: State) -> Result<State>
 
     let (secret_key, public_key) = generate_key_pair()?;
 
-    connection.write_message(&Message::RegisterRoleReq1 {
+    connection.write_message(&VerticalMessage::RegisterRoleReq1 {
         name,
         is_assignment,
         public_key: public_key.clone()
     })?;
 
     match connection.read_message()? {
-        Message::RegisterRoleRes1 { role } => {
+        VerticalMessage::RegisterRoleRes1 { role } => {
             let conn = establish_connection()?;
             if let Actor::Role{
                 actor_id,
@@ -101,13 +101,13 @@ pub fn register_user(connection: &mut Connection, state: State) -> Result<State>
 
     let (secret_key, public_key) = generate_key_pair()?;
 
-    connection.write_message(&Message::RegisterUserReq1 {
+    connection.write_message(&VerticalMessage::RegisterUserReq1 {
         name,
         public_key: public_key.clone()
     })?;
 
     match connection.read_message()? {
-        Message::RegisterUserRes1 { user } => {
+        VerticalMessage::RegisterUserRes1 { user } => {
             let conn = establish_connection()?;
             if let Actor::User{
                 actor_id,
