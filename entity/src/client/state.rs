@@ -1,12 +1,17 @@
 use common::db::models::actor::Actor;
-use common::enums::ServerType;
+use common::pki::{
+    BoxType,
+    Certificate,
+};
 
 
 #[derive(Clone)]
 pub struct State {
     actor: Option<Actor>,
-    secret_key: Option<Vec<u8>>,
-    opponent_type: Option<ServerType>,
+    box_secret_key: Option<Vec<u8>>,
+    box_public_key: Option<Vec<u8>>,
+    box_certificate: Option<Certificate>,
+    opponent_type: Option<BoxType>,
 }
 
 impl State {
@@ -18,12 +23,16 @@ impl State {
     /// 
     pub fn new(
         actor: Option<Actor>,
-        secret_key: Option<Vec<u8>>,
-        opponent_type: Option<ServerType>,
+        box_secret_key: Option<Vec<u8>>,
+        box_public_key: Option<Vec<u8>>,
+        box_certificate: Option<Certificate>,
+        opponent_type: Option<BoxType>,
     ) -> State {
         State {
             actor,
-            secret_key,
+            box_secret_key,
+            box_public_key,
+            box_certificate,
             opponent_type,
         }
     }
@@ -32,11 +41,19 @@ impl State {
         self.actor.clone()
     }
 
-    pub fn secret_key(&self) -> Option<Vec<u8>> {
-        self.secret_key.clone()
+    pub fn box_secret_key(&self) -> Option<Vec<u8>> {
+        self.box_secret_key.clone()
     }
 
-    pub fn opponent_type(&self) -> Option<ServerType> {
+    pub fn box_public_key(&self) -> Option<Vec<u8>> {
+        self.box_public_key.clone()
+    }
+
+    pub fn box_certificate(&self) -> Option<Certificate> {
+        self.box_certificate.clone()
+    }
+
+    pub fn opponent_type(&self) -> Option<BoxType> {
         self.opponent_type.clone()
     }
 }

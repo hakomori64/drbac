@@ -19,7 +19,7 @@ pub fn register_entity(connection: &mut Connection, state: State, data: Vertical
         let actor_id = generate_actor_id()?;
         create_entity(&conn, actor_id.clone(), name, None, Some(public_key))?;
         let entity = find_actor(&conn, actor_id)?;
-        let publickey = state.clone().public_key;
+        let publickey = state.box_public_key();
 
         connection.write_message(&VerticalMessage::RegisterEntityRes1 {
             entity,
@@ -34,11 +34,11 @@ pub fn register_entity(connection: &mut Connection, state: State, data: Vertical
 pub fn register_role(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
     if let VerticalMessage::RegisterRoleReq1 { name, is_assignment, public_key } = data {
         // check if state.actor is entity
-        if state.actor.clone().is_none() {
+        if state.opponent_actor.clone().is_none() {
             return Err(anyhow!("認証が終わっていません"));
         }
 
-        let entity_id = if let Actor::Entity {actor_id, ..} = state.actor.clone().unwrap() { actor_id } else {
+        let entity_id = if let Actor::Entity {actor_id, ..} = state.opponent_actor.clone().unwrap() { actor_id } else {
             return Err(anyhow!("Entityとして認証されていません"));
         };
 
@@ -59,11 +59,11 @@ pub fn register_role(connection: &mut Connection, state: State, data: VerticalMe
 pub fn register_user(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
     if let VerticalMessage::RegisterUserReq1 { name, public_key } = data {
         // check if state.actor is entity
-        if state.actor.clone().is_none() {
+        if state.opponent_actor.clone().is_none() {
             return Err(anyhow!("認証が終わっていません"));
         }
 
-        let entity_id = if let Actor::Entity {actor_id, ..} = state.actor.clone().unwrap() { actor_id } else {
+        let entity_id = if let Actor::Entity {actor_id, ..} = state.opponent_actor.clone().unwrap() { actor_id } else {
             return Err(anyhow!("Entityとして認証されていません"));
         };
 

@@ -1,10 +1,12 @@
 use common::db::models::actor::Actor;
+use common::pki::Certificate;
 
 #[derive(Clone)]
 pub struct State {
-    pub actor: Option<Actor>,
-    pub secret_key: Option<Vec<u8>>,
-    pub public_key: Option<Vec<u8>>
+    pub opponent_actor: Option<Actor>,
+    pub box_secret_key: Option<Vec<u8>>,
+    pub box_public_key: Option<Vec<u8>>,
+    pub box_certificate: Option<Certificate>
 }
 
 impl State {
@@ -15,26 +17,32 @@ impl State {
     /// # Panic
     /// 
     pub fn new(
-        actor: Option<Actor>,
-        secret_key: Option<Vec<u8>>,
-        public_key: Option<Vec<u8>>,
+        opponent_actor: Option<Actor>,
+        box_secret_key: Option<Vec<u8>>,
+        box_public_key: Option<Vec<u8>>,
+        box_certificate: Option<Certificate>,
     ) -> State {
         State {
-            actor,
-            secret_key,
-            public_key,
+            opponent_actor,
+            box_secret_key,
+            box_public_key,
+            box_certificate,
         }
     }
 
-    pub fn actor(&self) -> Option<Actor> {
-        self.actor.clone()
+    pub fn opponent_actor(&self) -> Option<Actor> {
+        self.opponent_actor.clone()
     }
 
-    pub fn secret_key(&self) -> Option<Vec<u8>> {
-        self.secret_key.clone()
+    pub fn box_secret_key(&self) -> Option<Vec<u8>> {
+        self.box_secret_key.clone()
     }
 
-    pub fn public_key(&self) -> Option<Vec<u8>> {
-        self.public_key.clone()
+    pub fn box_public_key(&self) -> Option<Vec<u8>> {
+        self.box_public_key.clone()
+    }
+
+    pub fn box_certificate(&self) -> Option<Certificate> {
+        self.box_certificate.clone()
     }
 }

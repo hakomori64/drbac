@@ -5,10 +5,10 @@ use common::connection::Connection;
 use common::messages::VerticalMessage as DRBACVerticalMessage;
 use common::pki::{
     read_pem,
-    create_pem,
-    generate_key_pair,
+    read_json,
+    Certificate,
 };
-use common::enums::ServerType;
+use common::pki::BoxType;
 
 mod request;
 mod state;
@@ -21,17 +21,18 @@ use common::handlers::server::crypto_channel::crypto_channel;
 pub fn handle_connection(stream: TcpStream) {
     let secret_path: PathBuf = ["secret_key.pem"].iter().collect();
     let public_path: PathBuf = ["public_key.pem"].iter().collect();
+    let cert_path: PathBuf = ["cert.json"].iter().collect();
     let (secret_key, public_key) = if secret_path.exists() && public_path.exists() {
         (read_pem(&secret_path).unwrap(), read_pem(&public_path).unwrap())
-    } else if !secret_path.exists() && !public_path.exists() {
-        let (secret_key, public_key) = generate_key_pair().unwrap();
-        create_pem(&secret_path, String::from("secret key"), secret_key.clone()).unwrap();
-        create_pem(&public_path, String::from("public key"), public_key.clone()).unwrap();
-        (secret_key, public_key)
     } else {
         panic!("key error");
     };
 
+    let certificate: Certificate = if cert_path.exists() {
+        read_json(&cert_path).unwrap()
+    } else {
+        panic!("certificate not found error");
+    };
 
     let mut connection: Connection = Connection::new();
     connection.set_stream(stream).expect("setting stream failed");
@@ -39,9 +40,10 @@ pub fn handle_connection(stream: TcpStream) {
         None,
         Some(secret_key),
         Some(public_key),
+        Some(certificate)
     );
     // encrypt channel here
-    state = match crypto_channel(&mut connection, ServerType::Central) {
+    state = match crypto_channel(&mut connection, BoxType::Central) {
         Ok(_) => {
             println!("通信の暗号化に成功しました");
             state

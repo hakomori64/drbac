@@ -4,7 +4,7 @@ use std::net::TcpStream;
 
 use common::connection::Connection;
 use common::messages::HorizontalMessage;
-use common::enums::ServerType;
+use common::pki::BoxType;
 use common::handlers::server::crypto_channel::crypto_channel;
 
 mod state;
@@ -18,7 +18,7 @@ pub fn handle_connection(stream: TcpStream) {
     let mut connection: Connection = Connection::new();
     connection.set_stream(stream).expect("setting stream failed");
     let mut state = State::new();
-    state = match crypto_channel(&mut connection, ServerType::Entity) {
+    state = match crypto_channel(&mut connection, BoxType::Client) {
         Ok(_) => {
             println!("通信の暗号化に成功しました");
             state

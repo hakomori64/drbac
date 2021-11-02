@@ -15,6 +15,7 @@ pub mod schema;
 pub mod thread_pool;
 pub mod socket_server;
 pub mod handlers;
+pub mod constants;
 
 #[cfg(test)]
 mod tests {

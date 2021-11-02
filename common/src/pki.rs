@@ -1,4 +1,6 @@
 use anyhow::{Result, anyhow};
+use serde::{Deserialize, Serialize};
+use serde::de::DeserializeOwned;
 use pem::{Pem, parse, encode};
 use std::fs::File;
 use std::io::Write;
@@ -13,6 +15,8 @@ use ed25519_dalek::{
     Verifier,
 };
 use sha2::{Sha512, Digest};
+use base64;
+use std::io::BufReader;
 
 pub fn generate_key_pair() -> Result<(Vec<u8>, Vec<u8>)> {
 
@@ -72,4 +76,85 @@ pub fn verify(signature: [u8; 64], message: &[u8], public_key: &[u8]) -> Result<
     let public_key = PublicKey::from_bytes(public_key)?;
     let signature = Signature::new(signature);
     public_key.verify(message, &signature).map_err(|_| anyhow!("verification failed"))
+}
+
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+)]
+pub enum BoxType {
+    Central,
+    Client,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct CSR {
+    pub name: String,
+    pub box_type: BoxType,
+    pub public_key: String // base64 encoded public_key. public_key itself is vec<u8>
+}
+
+impl CSR {
+    pub fn new(name: String, box_type: BoxType, public_key: Vec<u8>) -> CSR {
+        CSR {
+            name,
+            box_type,
+            public_key: base64::encode(public_key)
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Certificate {
+    pub name: String,
+    pub box_type: BoxType,
+    pub public_key: String,
+    pub hash: String // to_string(CSR) | sign with CA secret key
+}
+
+// below functions are not used in production mode 
+
+pub fn generate_csr(name: String, box_type: BoxType, public_key: &[u8]) -> Result<CSR> {
+    Ok(CSR::new(name, box_type, public_key.to_vec()))
+}
+
+pub fn write_json<T: Serialize>(filename: &PathBuf, data: T) -> Result<()> {
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .create(true)
+        .open(filename)?;
+
+    let text = serde_json::to_string(&data)?;
+    write!(&file, "{}", text)?;
+
+    Ok(())
+}
+
+pub fn read_json<T: DeserializeOwned>(filename: &PathBuf) -> Result<T> {
+    let file = std::fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(filename)?;
+    
+    let reader = BufReader::new(file);
+    let data = serde_json::from_reader(reader)?;
+    Ok(data)
+}
+
+pub fn create_certificate(csr: &CSR, ca_secret_key: Vec<u8>) -> Result<Certificate> {
+    let csr_text = serde_json::to_string(csr)?;
+    let hashed = hash(csr_text.as_bytes())?;
+    let signed = sign(&hashed, &ca_secret_key)?;
+    let base64ed = base64::encode(&signed);
+
+    Ok(Certificate {
+        name: csr.name.clone(),
+        box_type: csr.box_type,
+        public_key: csr.public_key.clone(),
+        hash: base64ed
+    })
 }

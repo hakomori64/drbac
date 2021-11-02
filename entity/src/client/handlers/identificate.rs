@@ -18,7 +18,7 @@ use common::crypto::aes::AES;
 use common::messages::VerticalMessage;
 use super::super::state::State;
 
-pub fn identificate(connection: &mut Connection, _state: State) -> Result<State> {
+pub fn identificate(connection: &mut Connection, state: State) -> Result<State> {
 
     let actor_id: String = io::read_until(
         "actor_id: (entity | user) = ",
@@ -96,6 +96,8 @@ pub fn identificate(connection: &mut Connection, _state: State) -> Result<State>
     let state = State::new(
         Some(actor),
         Some(secret_key_content),
+        state.box_public_key(),
+        state.box_certificate(),
         None,
     );
 

@@ -42,7 +42,7 @@ pub fn identificate(connection: &mut Connection, state: State, data: VerticalMes
             _ => {}
         };
 
-        let server_signature = sign(&message, &state.secret_key.clone().unwrap())?;
+        let server_signature = sign(&message, &state.box_secret_key.clone().unwrap())?;
 
         connection.write_message(&VerticalMessage::IdentificateRes1 {
             server_signature: server_signature.to_vec()
@@ -67,8 +67,9 @@ pub fn identificate(connection: &mut Connection, state: State, data: VerticalMes
 
         let state = State::new(
             Some(actor),
-            state.secret_key.clone(),
-            state.public_key.clone()
+            state.box_secret_key().clone(),
+            state.box_public_key().clone(),
+            state.box_certificate().clone(),
         );
 
         return Ok(state);

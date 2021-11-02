@@ -1,6 +1,6 @@
 use serde::{Serialize, Deserialize};
 use crate::db::models::actor::Actor;
-use crate::enums::ServerType;
+use crate::pki::BoxType;
 
 pub trait Message {}
 
@@ -21,7 +21,7 @@ pub enum CommonMessage {
         ping: String
     },
     CryptoChannelRes2 {
-        server_type: ServerType
+        server_type: BoxType
     },
 }
 
@@ -46,7 +46,6 @@ pub enum VerticalMessage {
     WhoamiReq1 {},
     WhoamiRes1 {
         actor: Actor,
-        public_key_blob: Vec<u8>
     },
 
     // delegate role

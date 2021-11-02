@@ -5,9 +5,9 @@ use rand_core::OsRng;
 use crate::connection::Connection;
 use crate::crypto::aes::AES;
 use crate::messages::CommonMessage;
-use crate::enums::ServerType;
+use crate::pki::BoxType;
 
-pub fn crypto_channel(connection: &mut Connection) -> Result<ServerType> {
+pub fn crypto_channel(connection: &mut Connection) -> Result<BoxType> {
     let secret = EphemeralSecret::new(OsRng);
     let public = PublicKey::from(&secret);
 

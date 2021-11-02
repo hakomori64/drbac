@@ -10,14 +10,38 @@ use common::connection::Connection;
 use state::State;
 use request::handle_request;
 use handlers::connection::connect;
-use common::enums::ServerType;
+use common::pki::{
+    BoxType,
+    Certificate,
+    read_pem,
+    read_json,
+};
 use common::handlers::client::crypto_channel::crypto_channel;
+use std::path::PathBuf;
 
 
 pub fn start_client() {
+    let secret_path: PathBuf = ["secret_key.pem"].iter().collect();
+    let public_path: PathBuf = ["public_key.pem"].iter().collect();
+    let cert_path: PathBuf = ["cert.json"].iter().collect();
+    let (secret_key, public_key) = if secret_path.exists() && public_path.exists() {
+        (read_pem(&secret_path).unwrap(), read_pem(&public_path).unwrap())
+    } else {
+        panic!("key error");
+    };
+
+    let certificate: Certificate = if cert_path.exists() {
+        read_json(&cert_path).unwrap()
+    } else {
+        panic!("certificate not found error");
+    };
+
+    //let (secret_key, public_key) = 
     let mut state = State::new(
         None,
-        None,
+        Some(secret_key),
+        Some(public_key),
+        Some(certificate),
         None,
     );
     let mut connection: Connection = Connection::new();
@@ -45,16 +69,19 @@ pub fn start_client() {
 
                 // encrypt channel here
                 match crypto_channel(&mut connection) {
-                    Ok(server_type) => {
+                    Ok(opponent_type) => {
                         println!("通信の暗号化に成功しました");
                         State::new(
                             state.actor(),
-                            state.secret_key(),
-                            Some(server_type)
+                            state.box_secret_key(),
+                            state.box_public_key(),
+                            state.box_certificate(),
+                            Some(opponent_type),
                         )
                     }
                     Err(err) => {
                         println!("通信の暗号化に失敗しました");
+                        println!("{}", err);
                         return;
                     }
                 }
@@ -66,7 +93,7 @@ pub fn start_client() {
             _ => {
                 let opponent_type = state.opponent_type().unwrap();
                 match opponent_type {
-                    ServerType::Central => {
+                    BoxType::Central => {
                         match handle_request(&mut connection, state.clone(), command.as_str()) {
                             Ok(state) => state,
                             Err(error) => {
@@ -75,7 +102,7 @@ pub fn start_client() {
                             }
                         }
                     }
-                    ServerType::Entity => {
+                    BoxType::Client => {
                         // entity command handling comes here
                         state
                     }
