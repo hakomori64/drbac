@@ -1,5 +1,6 @@
 use common::db::models::actor::Actor;
 use common::pki::Certificate;
+use common::state::StateTrait;
 
 #[derive(Clone)]
 pub struct State {
@@ -7,6 +8,21 @@ pub struct State {
     pub box_secret_key: Option<Vec<u8>>,
     pub box_public_key: Option<Vec<u8>>,
     pub box_certificate: Option<Certificate>
+}
+
+impl StateTrait for State {
+    
+    fn box_secret_key(&self) -> Option<Vec<u8>> {
+        self.box_secret_key.clone()
+    }
+    
+    fn box_public_key(&self) -> Option<Vec<u8>> {
+        self.box_public_key.clone()
+    }
+    
+    fn box_certificate(&self) -> Option<Certificate> {
+        self.box_certificate.clone()
+    }
 }
 
 impl State {
@@ -29,20 +45,9 @@ impl State {
             box_certificate,
         }
     }
-
+    
     pub fn opponent_actor(&self) -> Option<Actor> {
         self.opponent_actor.clone()
     }
-
-    pub fn box_secret_key(&self) -> Option<Vec<u8>> {
-        self.box_secret_key.clone()
-    }
-
-    pub fn box_public_key(&self) -> Option<Vec<u8>> {
-        self.box_public_key.clone()
-    }
-
-    pub fn box_certificate(&self) -> Option<Certificate> {
-        self.box_certificate.clone()
-    }
+    
 }

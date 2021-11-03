@@ -3,6 +3,7 @@ use common::pki::{
     BoxType,
     Certificate,
 };
+use common::state::StateTrait;
 
 
 #[derive(Clone)]
@@ -12,6 +13,21 @@ pub struct State {
     box_public_key: Option<Vec<u8>>,
     box_certificate: Option<Certificate>,
     opponent_type: Option<BoxType>,
+}
+
+impl StateTrait for State {
+    
+    fn box_secret_key(&self) -> Option<Vec<u8>> {
+        self.box_secret_key.clone()
+    }
+    
+    fn box_public_key(&self) -> Option<Vec<u8>> {
+        self.box_public_key.clone()
+    }
+    
+    fn box_certificate(&self) -> Option<Certificate> {
+        self.box_certificate.clone()
+    } 
 }
 
 impl State {
@@ -36,24 +52,13 @@ impl State {
             opponent_type,
         }
     }
-
+    
     pub fn actor(&self) -> Option<Actor> {
         self.actor.clone()
     }
-
-    pub fn box_secret_key(&self) -> Option<Vec<u8>> {
-        self.box_secret_key.clone()
-    }
-
-    pub fn box_public_key(&self) -> Option<Vec<u8>> {
-        self.box_public_key.clone()
-    }
-
-    pub fn box_certificate(&self) -> Option<Certificate> {
-        self.box_certificate.clone()
-    }
-
+    
     pub fn opponent_type(&self) -> Option<BoxType> {
         self.opponent_type.clone()
     }
+    
 }

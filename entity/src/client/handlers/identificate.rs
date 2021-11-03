@@ -1,4 +1,3 @@
-use std::convert::TryInto;
 use anyhow::{Result, anyhow};
 use common::io;
 use common::connection::Connection;
@@ -8,14 +7,12 @@ use common::db::models::actor::{
     find_actor
 };
 use common::db::models::actor::is_valid_actor_id_format;
-use common::db::models::entity_central_relation::get_relation;
 use common::pki::{
     hash,
     sign,
-    verify,
 };
-use common::crypto::aes::AES;
 use common::messages::VerticalMessage;
+use common::state::StateTrait;
 use super::super::state::State;
 
 pub fn identificate(connection: &mut Connection, state: State) -> Result<State> {
@@ -51,54 +48,23 @@ pub fn identificate(connection: &mut Connection, state: State) -> Result<State> 
         signature: signature.to_vec()
     })?;
 
-    let server_signature = match connection.read_message()? {
-        VerticalMessage::IdentificateRes1 {server_signature} => server_signature,
+    println!("sending res2");
+    let status = match connection.read_message()? {
+        VerticalMessage::IdentificateRes1 { status } => status,
         _ => return Err(anyhow!("IdentificateRes2を受け取れませんでした"))
     };
 
-    let server_signature: [u8; 64] = match server_signature.try_into() {
-        Ok(ba) => ba,
-        Err(_) => return Err(anyhow!("server_signatureの形式が正しくありません"))
-    };
-
-    let entity_id = match actor {
-        Actor::Entity { actor_id, .. } => actor_id,
-        Actor::Role { entity_id, .. } => entity_id,
-        Actor::User { entity_id, .. } => entity_id
-    };
-
-    let relations = get_relation(&conn, Some(entity_id), None)?;
-    if relations.len() != 1 {
-        return Err(anyhow!("entityを複数のホストに対して登録しているか、登録された形跡がありません"));
+    if status.as_str() != "OK" {
+        return Err(anyhow!("認証に失敗しました"));
     }
 
-    match verify(server_signature, &message, &relations[0].central_key) {
-        Err(_) => {
-            return Err(anyhow!("centralの認証に失敗しました"));
-        },
-        _ => {}
-    }
-
-    connection.write_message(&VerticalMessage::IdentificateReq2 {})?;
-
-    let (actor, common_key) = match connection.read_message()? {
-        VerticalMessage::IdentificateRes2 {actor, common_key} => (actor, common_key),
-        _ => return Err(anyhow!("IdentificateRes3を受け取れませんでした"))
-    };
-
-    let key = &common_key;
-    let aes = AES::new(key);
-
-    if connection.set_crypto_module(Box::new(aes)).is_err() {
-        return Err(anyhow!("暗号化モジュールの更新に失敗しました"));
-    }
 
     let state = State::new(
         Some(actor),
-        Some(secret_key_content),
+        state.box_secret_key(),
         state.box_public_key(),
         state.box_certificate(),
-        None,
+        state.opponent_type(),
     );
 
     Ok(state)

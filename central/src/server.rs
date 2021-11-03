@@ -8,7 +8,6 @@ use common::pki::{
     read_json,
     Certificate,
 };
-use common::pki::BoxType;
 
 mod request;
 mod state;
@@ -43,7 +42,7 @@ pub fn handle_connection(stream: TcpStream) {
         Some(certificate)
     );
     // encrypt channel here
-    state = match crypto_channel(&mut connection, BoxType::Central) {
+    state = match crypto_channel(&mut connection, state.clone()) {
         Ok(_) => {
             println!("通信の暗号化に成功しました");
             state

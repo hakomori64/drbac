@@ -10,6 +10,7 @@ use common::db::models::actor::{
     generate_actor_id,
     find_actor,
 };
+use common::state::StateTrait;
 use super::super::state::State;
 
 
@@ -19,11 +20,10 @@ pub fn register_entity(connection: &mut Connection, state: State, data: Vertical
         let actor_id = generate_actor_id()?;
         create_entity(&conn, actor_id.clone(), name, None, Some(public_key))?;
         let entity = find_actor(&conn, actor_id)?;
-        let publickey = state.box_public_key();
 
         connection.write_message(&VerticalMessage::RegisterEntityRes1 {
             entity,
-            central_public_key: publickey.unwrap(),
+            certificate: state.box_certificate().unwrap()
         })?;
         Ok(state)
     } else {

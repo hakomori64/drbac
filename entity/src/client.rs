@@ -7,6 +7,7 @@ mod request;
 mod constants;
 
 use common::connection::Connection;
+use common::state::StateTrait;
 use state::State;
 use request::handle_request;
 use handlers::connection::connect;
@@ -68,7 +69,7 @@ pub fn start_client() {
                 };
 
                 // encrypt channel here
-                match crypto_channel(&mut connection) {
+                match crypto_channel(&mut connection, state.clone()) {
                     Ok(opponent_type) => {
                         println!("通信の暗号化に成功しました");
                         State::new(

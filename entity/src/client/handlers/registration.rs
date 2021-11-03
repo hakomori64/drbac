@@ -9,7 +9,13 @@ use common::db::models::role::create_role;
 use common::db::models::user::create_user;
 use common::db::models::entity_central_relation::create_relation;
 use super::super::state::State;
-use common::pki::generate_key_pair;
+use common::pki::{
+    BoxType,
+    generate_key_pair,
+    parse_pem,
+    verify_certificate,
+};
+use common::constants::CA_PUBLIC_KEY;
 
 pub fn register_entity(connection: &mut Connection, state: State) -> Result<State> {
     // name
@@ -28,9 +34,15 @@ pub fn register_entity(connection: &mut Connection, state: State) -> Result<Stat
 
     match connection.read_message()? {
         // TODO central_public_keyを使ってサーバーを信頼するかどうか決める
-        VerticalMessage::RegisterEntityRes1 { entity, central_public_key } => {
+        VerticalMessage::RegisterEntityRes1 { entity, certificate } => {
             // 受け取った内容をローカルのDBに登録する
             let conn = establish_connection()?;
+            let ca_public_key = parse_pem(String::from(CA_PUBLIC_KEY))?;
+            let central_public_key = if verify_certificate(certificate.clone(), ca_public_key)? && certificate.box_type == BoxType::Central {
+                certificate.decoded_public_key()?
+            } else {
+                return Err(anyhow!("送られてきた証明書に問題があります"));
+            };
             create_entity(&conn, entity.actor_id(), entity.name(), Some(secret_key), Some(public_key))?;
             create_relation(&conn, entity.actor_id(), central_public_key)?;
             Ok(state)

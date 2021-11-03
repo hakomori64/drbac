@@ -1,6 +1,8 @@
 use serde::{Serialize, Deserialize};
 use crate::db::models::actor::Actor;
-use crate::pki::BoxType;
+use crate::pki::{
+    Certificate,
+};
 
 pub trait Message {}
 
@@ -12,16 +14,24 @@ impl Message for HorizontalMessage {}
 pub enum CommonMessage {
     // crypto channel
     CryptoChannelReq1 {
-        public_key: [u8; 32]
+        certificate: Certificate,
     },
     CryptoChannelRes1 {
-        public_key: [u8; 32]
+        certificate: Certificate,
     },
     CryptoChannelReq2 {
-        ping: String
+        public_key: [u8; 32],
+        signature: String,
     },
     CryptoChannelRes2 {
-        server_type: BoxType
+        public_key: [u8; 32],
+        signature: String,
+    },
+    CryptoChannelReq3 {
+        ping: String
+    },
+    CryptoChannelRes3 {
+        ping: String
     },
 }
 
@@ -34,12 +44,7 @@ pub enum VerticalMessage {
         signature: Vec<u8>
     },
     IdentificateRes1 {
-        server_signature: Vec<u8>
-    },
-    IdentificateReq2 {},
-    IdentificateRes2 {
-        actor: Actor,
-        common_key: [u8; 32]
+        status: String
     },
 
     // whoami
@@ -74,7 +79,7 @@ pub enum VerticalMessage {
     },
     RegisterEntityRes1 {
         entity: Actor,
-        central_public_key: Vec<u8>
+        certificate: Certificate,
     },
 
     RegisterRoleReq1 {

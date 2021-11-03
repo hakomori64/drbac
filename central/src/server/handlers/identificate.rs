@@ -6,14 +6,12 @@ use common::db::utils::{
     establish_connection
 };
 use common::db::models::actor::find_actor;
-use common::crypto::aes::AES;
 use common::pki::{
     hash,
-    sign,
     verify,
 };
-use rand::Rng;
 use common::connection::Connection;
+use common::state::StateTrait;
 use super::super::state::State;
 
 pub fn identificate(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
@@ -42,28 +40,9 @@ pub fn identificate(connection: &mut Connection, state: State, data: VerticalMes
             _ => {}
         };
 
-        let server_signature = sign(&message, &state.box_secret_key.clone().unwrap())?;
-
         connection.write_message(&VerticalMessage::IdentificateRes1 {
-            server_signature: server_signature.to_vec()
+            status: String::from("OK")
         })?;
-
-        match connection.read_message()? {
-            VerticalMessage::IdentificateReq2 {..} => {},
-            _ => return Err(anyhow!("IdentiricateReq2でないリクエストを受け取りました"))
-        }
-
-        let common_key = rand::thread_rng().gen::<[u8; 32]>();
-        let key = &common_key;
-        let aes = AES::new(key);
-
-        connection.write_message(&VerticalMessage::IdentificateRes2 {
-            actor: actor.clone(),
-            common_key: common_key
-        })?;
-        if connection.set_crypto_module(Box::new(aes)).is_err() {
-            return Err(anyhow!("暗号化モジュールの更新に失敗しました"));
-        }
 
         let state = State::new(
             Some(actor),

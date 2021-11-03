@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use serde::de::DeserializeOwned;
 use pem::{Pem, parse, encode};
 use std::fs::File;
+use std::convert::TryInto;
 use std::io::Write;
 use std::path::PathBuf;
 use rand_core::OsRng;
@@ -37,6 +38,11 @@ pub fn hash(data: &[u8]) -> Result<Vec<u8>> {
 
 pub fn read_pem(path: &PathBuf) -> Result<Vec<u8>> {
     let pem_string = std::fs::read_to_string(path)?;
+    let data = parse(&pem_string)?;
+    Ok(data.contents)
+}
+
+pub fn parse_pem(pem_string: String) -> Result<Vec<u8>> {
     let data = parse(&pem_string)?;
     Ok(data.contents)
 }
@@ -84,6 +90,7 @@ pub fn verify(signature: [u8; 64], message: &[u8], public_key: &[u8]) -> Result<
     Deserialize,
     Clone,
     Copy,
+    PartialEq
 )]
 pub enum BoxType {
     Central,
@@ -113,6 +120,13 @@ pub struct Certificate {
     pub box_type: BoxType,
     pub public_key: String,
     pub hash: String // to_string(CSR) | sign with CA secret key
+}
+
+impl Certificate {
+
+    pub fn decoded_public_key(&self) -> Result<Vec<u8>> {
+        Ok(base64::decode(self.public_key.clone())?)
+    }
 }
 
 // below functions are not used in production mode 
@@ -157,4 +171,28 @@ pub fn create_certificate(csr: &CSR, ca_secret_key: Vec<u8>) -> Result<Certifica
         public_key: csr.public_key.clone(),
         hash: base64ed
     })
+}
+
+pub fn verify_certificate(certificate: Certificate, ca_public_key: Vec<u8>) -> Result<bool> {
+    let csr = CSR {
+        name: certificate.name.clone(),
+        box_type: certificate.box_type.clone(),
+        public_key: certificate.public_key.clone()
+    };
+
+    let csr_text = serde_json::to_string(&csr)?;
+    let hashed = hash(csr_text.as_bytes())?;
+    
+    let signed = base64::decode(&certificate.hash)?;
+    let signature: [u8; 64] = match signed.try_into() {
+        Ok(ba) => ba,
+        Err(_) => return Err(anyhow!("signatureの形式が正しくありません"))
+    };
+
+    let result = match verify(signature, &hashed, &ca_public_key) {
+        Ok(_) => true,
+        _ => false
+    };
+
+    Ok(result)
 }
