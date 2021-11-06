@@ -99,6 +99,23 @@ pub enum VerticalMessage {
         user: Actor
     },
 
+    ExecuteReq1 {
+        box_name: String, // box_nameに接続して実行してください
+        command: String, // この内容を実行してください
+        args: Vec<String>
+    },
+    ExecuteProxyReq1 {
+        actor: Actor,
+        command: String,
+        args: Vec<String>
+    },
+    ExecuteProxyRes1 {
+        result: String,
+    },
+    ExecuteRes1 {
+        result: String,
+    },
+
     // error
     Error {
         reason: String

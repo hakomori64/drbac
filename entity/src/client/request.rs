@@ -7,6 +7,9 @@ use super::handlers::roles::{
     delegate_role,
     search_roles,
 };
+use super::handlers::commands::{
+    execute_command
+};
 use super::handlers::registration::{
     register_entity,
     register_role,
@@ -103,6 +106,19 @@ pub fn handle_request(connection: &mut Connection, state: State, command: &str) 
                 }
                 Err(err) => {
                     println!("CentralサーバーへのUserの登録に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        },
+        "execute command" => {
+            match execute_command(connection, state.clone()) {
+                Ok(state) => {
+                    println!("リモートでのコマンドの実行に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("リモートでのコマンドの実行に失敗しました");
                     println!("{}", err);
                     Err(err)
                 }

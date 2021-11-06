@@ -13,6 +13,9 @@ use super::handlers::registration::{
     register_role,
     register_user,
 };
+use super::handlers::commands::{
+    execute_command
+};
 use super::state::State;
 
 
@@ -105,6 +108,19 @@ pub fn handle_request(connection: &mut Connection, state: State, message: Vertic
                 }
                 Err(err) => {
                     println!("Userの登録に失敗しました");
+                    println!("{}", err);
+                    Err(err)
+                }
+            }
+        },
+        VerticalMessage::ExecuteReq1 {..} => {
+            match execute_command(connection, state, message) {
+                Ok(state) => {
+                    println!("コマンドの実行に成功しました");
+                    Ok(state)
+                }
+                Err(err) => {
+                    println!("コマンドの実行に失敗しました");
                     println!("{}", err);
                     Err(err)
                 }
