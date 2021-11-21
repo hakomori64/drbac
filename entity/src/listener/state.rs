@@ -8,6 +8,7 @@ pub struct State {
     box_secret_key: Option<Vec<u8>>,
     box_public_key: Option<Vec<u8>>,
     box_certificate: Option<Certificate>,
+    enable_jail: bool,
 }
 
 impl StateTrait for State {
@@ -22,19 +23,25 @@ impl StateTrait for State {
     
     fn box_certificate(&self) -> Option<Certificate> {
         self.box_certificate.clone()
-    } 
+    }
 }
 
 impl State {
     pub fn new(
         box_secret_key: Option<Vec<u8>>,
         box_public_key: Option<Vec<u8>>,
-        box_certificate: Option<Certificate>
+        box_certificate: Option<Certificate>,
+        enable_jail: bool,
     ) -> State {
         State {
             box_secret_key,
             box_public_key,
-            box_certificate
+            box_certificate,
+            enable_jail,
         }
+    }
+
+    pub fn enable_jail(&self) -> bool {
+        self.enable_jail.clone()
     }
 }

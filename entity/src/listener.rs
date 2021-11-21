@@ -17,12 +17,16 @@ mod request;
 mod handlers;
 
 use state::State;
+use std::env;
 
 
 pub fn handle_connection(stream: TcpStream) {
     let secret_path: PathBuf = ["secret_key.pem"].iter().collect();
     let public_path: PathBuf = ["public_key.pem"].iter().collect();
     let cert_path: PathBuf = ["cert.json"].iter().collect();
+
+    let args: Vec<String> = env::args().collect();
+    let enable_jail: bool = args[2].parse().unwrap();
     let (secret_key, public_key) = if secret_path.exists() && public_path.exists() {
         (read_pem(&secret_path).unwrap(), read_pem(&public_path).unwrap())
     } else {
@@ -39,7 +43,8 @@ pub fn handle_connection(stream: TcpStream) {
     let mut state = State::new(
         Some(secret_key),
         Some(public_key),
-        Some(certificate)
+        Some(certificate),
+        enable_jail,
     );
     state = match crypto_channel(&mut connection, state.clone()) {
         Ok(_) => {

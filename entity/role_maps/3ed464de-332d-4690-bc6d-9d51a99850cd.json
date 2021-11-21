@@ -1,0 +1,12 @@
+{
+    "maps": [
+        {
+            "src": "guest",
+            "dst": "guest_r"
+        },
+        {
+            "src": "user",
+            "dst": "user_r"
+        }
+    ]
+}

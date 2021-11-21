@@ -12,29 +12,49 @@ pub fn execute_command(connection: &mut Connection, state: State) -> Result<Stat
         |_| true
     );
 
-    let operation: String = io::read_until(
-        "実行コマンドを入力してください: ",
-        "正しいホスト名を入力してください",
+    let entity_id: String = io::read_until(
+        "コマンドを実行するエンティティのIDを入力してください：",
+        "正しいIDを入力してください",
         |_| true
     );
 
-    let mut commands: Vec<String> = operation.split_whitespace().map(|s| String::from(s)).collect();
+    loop {
+        let operation: String = io::read_until(
+            "実行コマンドを入力してください: ",
+            "正しいホスト名を入力してください",
+            |_| true
+        );
 
-    connection.write_message(&VerticalMessage::ExecuteReq1 {
-        box_name: host_name,
-        command: commands[0].clone(),
-        args: commands.drain(1..).collect()
-    })?;
-
-    match connection.read_message()? {
-        VerticalMessage::ExecuteRes1 { result } => {
-            println!("### result ###");
-            println!("{}", result);
-
-            Ok(state)
+        if operation.as_str() == "exit" {
+            connection.write_message(&VerticalMessage::ExecuteReq2 {})?;
+            match connection.read_message()? {
+                VerticalMessage::ExecuteRes2 {} => {
+                    println!("command execution finished");
+                    return Ok(state);
+                },
+                _ => {
+                    return Err(anyhow!("ExecuteRes2でないレスポンスを受け取りました"));
+                }
+            }
         }
-        _ => {
-            return Err(anyhow!("ExecuteRes1でないレスポンスを受け取りました"));
+    
+        let mut commands: Vec<String> = operation.split_whitespace().map(|s| String::from(s)).collect();
+    
+        connection.write_message(&VerticalMessage::ExecuteReq1 {
+            box_name: host_name.clone(),
+            entity_id: entity_id.clone(),
+            command: commands[0].clone(),
+            args: commands.drain(1..).collect()
+        })?;
+    
+        match connection.read_message()? {
+            VerticalMessage::ExecuteRes1 { result } => {
+                println!("### result ###");
+                println!("{}", result);
+            }
+            _ => {
+                return Err(anyhow!("ExecuteRes1でないレスポンスを受け取りました"));
+            }
         }
     }
 }

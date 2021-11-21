@@ -17,6 +17,7 @@ pub mod socket_server;
 pub mod handlers;
 pub mod constants;
 pub mod state;
+pub mod jail;
 
 #[cfg(test)]
 mod tests {
