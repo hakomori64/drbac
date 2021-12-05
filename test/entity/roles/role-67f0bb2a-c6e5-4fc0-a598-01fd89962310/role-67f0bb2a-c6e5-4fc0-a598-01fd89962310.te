@@ -1,0 +1,37 @@
+policy_module(role-67f0bb2a-c6e5-4fc0-a598-01fd89962310, 1.0)
+
+require {
+    #TODO replace unconfined to application role, type;
+    type unconfined_t;
+    role unconfined_r;
+    type user_devpts_t;
+    type bin_t;
+    type shell_exec_t;
+    class file { getattr open ioctl lock entrypoint execute execute_no_trans map read };
+    class chr_file { append read write getattr ioctl };
+    class process setpgid;
+}
+
+# TODO: replace unconfined_r with application role
+role unconfined_r types { role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t };
+
+type role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t;
+domain_type(role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t)
+type role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_exec_t;
+files_type(role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_exec_t)
+
+#TODO replace unconfined_t with application type
+domtrans_pattern(unconfined_t, role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_exec_t, role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t)
+
+allow role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_exec_t:file { entrypoint execute map read };
+allow role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t shell_exec_t:file { execute execute_no_trans map };
+allow role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t user_devpts_t:chr_file { append read write getattr ioctl };
+allow role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t self:process { setpgid };
+can_exec(role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t bin_t)
+
+
+##### DO NOT EDIT ABOVE
+###### YOU CAN ADD RULES BELOW
+# e.g. type role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_lib_t
+# e.g. files_type(role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_lib_t)
+# e.g. allow role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_lib_t:file { read getattr }

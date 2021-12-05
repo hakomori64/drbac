@@ -1,6 +1,5 @@
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
-use serde::de::DeserializeOwned;
 use pem::{Pem, parse, encode};
 use std::fs::File;
 use std::convert::TryInto;
@@ -17,7 +16,6 @@ use ed25519_dalek::{
 };
 use sha2::{Sha512, Digest};
 use base64;
-use std::io::BufReader;
 
 pub fn generate_key_pair() -> Result<(Vec<u8>, Vec<u8>)> {
 
@@ -133,30 +131,6 @@ impl Certificate {
 
 pub fn generate_csr(name: String, box_type: BoxType, public_key: &[u8]) -> Result<CSR> {
     Ok(CSR::new(name, box_type, public_key.to_vec()))
-}
-
-pub fn write_json<T: Serialize>(filename: &PathBuf, data: T) -> Result<()> {
-    let file = std::fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(filename)?;
-
-    let text = serde_json::to_string(&data)?;
-    write!(&file, "{}", text)?;
-
-    Ok(())
-}
-
-pub fn read_json<T: DeserializeOwned>(filename: &PathBuf) -> Result<T> {
-    let file = std::fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .open(filename)?;
-    
-    let reader = BufReader::new(file);
-    let data = serde_json::from_reader(reader)?;
-    Ok(data)
 }
 
 pub fn create_certificate(csr: &CSR, ca_secret_key: Vec<u8>) -> Result<Certificate> {

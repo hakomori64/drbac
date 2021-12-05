@@ -18,6 +18,8 @@ pub mod handlers;
 pub mod constants;
 pub mod state;
 pub mod jail;
+pub mod policy;
+pub mod utils;
 
 #[cfg(test)]
 mod tests {

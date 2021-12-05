@@ -1,3 +1,4 @@
+use common::policy::show_role_presetup_message;
 use anyhow::{Result, anyhow};
 use common::io;
 use common::connection::Connection;
@@ -8,6 +9,9 @@ use common::db::models::entity::create_entity;
 use common::db::models::role::create_role;
 use common::db::models::user::create_user;
 use common::db::models::entity_central_relation::create_relation;
+use common::policy::{
+    role_presetup,
+};
 use super::super::state::State;
 use common::pki::{
     BoxType,
@@ -43,8 +47,13 @@ pub fn register_entity(connection: &mut Connection, state: State) -> Result<Stat
             } else {
                 return Err(anyhow!("送られてきた証明書に問題があります"));
             };
+            let default_role_name = format!("role-{}-default", entity.actor_id());
+            role_presetup(&default_role_name)?;
+            
             create_entity(&conn, entity.actor_id(), entity.name(), Some(secret_key), Some(public_key))?;
             create_relation(&conn, entity.actor_id(), central_public_key)?;
+
+            show_role_presetup_message(&default_role_name)?;
             Ok(state)
         }
         _ => {
@@ -84,15 +93,20 @@ pub fn register_role(connection: &mut Connection, state: State) -> Result<State>
                 is_assignment,
                 ..
             } = role {
+                let role_name = format!("role-{}", &actor_id);
+                role_presetup(&role_name)?;
+
                 create_role(
                     &conn,
-                    actor_id,
+                    actor_id.clone(),
                     entity_id,
                     name,
                     is_assignment,
                     Some(secret_key),
                     Some(public_key)
                 )?;
+
+                show_role_presetup_message(&actor_id)?;
             } else {
                 return Err(anyhow!("RegisterRoleRes1の中身がおかしいです"));
             }

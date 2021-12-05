@@ -172,18 +172,13 @@ pub fn exec_chroot(root: &str) {
     handle_os_error(err, "chroot");
 }
 
-fn set_current_dir(path: &str) -> Result<()> {
-    std::env::set_current_dir(path)?;
-    Ok(())
-}
-
 pub fn exec(command: String, args: Vec<String>, guest_id: u32) -> Result<String> {
 
     if command.as_str() == "cd" {
         if args.len() != 1 {
             return Err(anyhow!("bash: cd: 引数が多すぎます"));
         }
-        set_current_dir(&args[0])?;
+        std::env::set_current_dir(&args[0])?;
         return Ok(String::from(""));
     }
 
@@ -211,6 +206,8 @@ pub fn get_guest_id() -> Result<u32> {
 
     Ok(id)
 }
+
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct RoleMap {

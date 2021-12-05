@@ -1,0 +1,4 @@
+/home/cl0wn/drbac/test/entity/roles/role-19fc880f-2332-4d62-9fb8-ce6b3272f8c6-default(/.*)? gen_context(system_u:object_r:role-19fc880f-2332-4d62-9fb8-ce6b3272f8c6-default_t, s0)
+/home/cl0wn/drbac/test/entity/roles/role-19fc880f-2332-4d62-9fb8-ce6b3272f8c6-default/role-19fc880f-2332-4d62-9fb8-ce6b3272f8c6-default gen_context(system_u:object_r:role-19fc880f-2332-4d62-9fb8-ce6b3272f8c6-default_exec_t, s0)
+##### DO NOT EDIT ABOVE
+##### YOU CAN ADD YOUR FILE CONTEXT BELOW

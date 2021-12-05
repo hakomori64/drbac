@@ -1,6 +1,9 @@
 use std::path::PathBuf;
 use anyhow::{Result, anyhow};
-
+use common::io::{
+    write_json_to_file,
+    read_json_from_file,
+};
 use common::pki::{
     CSR,
     BoxType,
@@ -8,8 +11,6 @@ use common::pki::{
     create_pem,
     read_pem,
     generate_csr,
-    read_json,
-    write_json,
     create_certificate,
 };
 
@@ -34,7 +35,7 @@ pub fn generate_keypair_and_csr(name: String, server_type: String) -> Result<()>
     };
 
     let csr = generate_csr(name, server_type, &public_key)?;
-    write_json(&csr_path, csr)?;
+    write_json_to_file(&csr_path, csr)?;
 
     Ok(())
 }
@@ -51,14 +52,14 @@ pub fn sign(csr_path: String) -> Result<()> {
     }
 
     let secret_key = read_pem(&ca_secret_path)?;
-    let csr = read_json::<CSR>(&csr_path)?;
+    let csr = read_json_from_file::<CSR>(&csr_path)?;
 
     let certificate = create_certificate(&csr, secret_key)?;
 
     let dest_name = csr.name;
     let dest_name = format!("{}.cert", dest_name);
     let dest_file_path: PathBuf = [dest_name].iter().collect();
-    write_json(&dest_file_path, certificate)?;
+    write_json_to_file(&dest_file_path, certificate)?;
 
     Ok(())
 }

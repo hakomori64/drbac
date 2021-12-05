@@ -6,10 +6,12 @@ use std::path::PathBuf;
 use common::connection::Connection;
 use common::messages::VerticalMessage;
 use common::handlers::server::crypto_channel::crypto_channel;
+use common::io::{
+    read_json_from_file
+};
 use common::pki::{
     Certificate,
     read_pem,
-    read_json,
 };
 
 mod state;
@@ -34,7 +36,7 @@ pub fn handle_connection(stream: TcpStream) {
     };
 
     let certificate: Certificate = if cert_path.exists() {
-        read_json(&cert_path).unwrap()
+        read_json_from_file(&cert_path).unwrap()
     } else {
         panic!("certificate not found error");
     };

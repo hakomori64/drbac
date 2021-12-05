@@ -4,5 +4,6 @@ members = [
     "central",
     "entity",
     "common",
-    "ca"
+    "ca",
+    "shell"
 ]

@@ -11,11 +11,13 @@ use common::state::StateTrait;
 use state::State;
 use request::handle_request;
 use handlers::connection::connect;
+use common::io::{
+    read_json_from_file,
+};
 use common::pki::{
     BoxType,
     Certificate,
     read_pem,
-    read_json,
 };
 use common::handlers::client::crypto_channel::crypto_channel;
 use std::path::PathBuf;
@@ -32,7 +34,7 @@ pub fn start_client() {
     };
 
     let certificate: Certificate = if cert_path.exists() {
-        read_json(&cert_path).unwrap()
+        read_json_from_file(&cert_path).unwrap()
     } else {
         panic!("certificate not found error");
     };
@@ -111,5 +113,4 @@ pub fn start_client() {
             }
         }
     }
-
 }

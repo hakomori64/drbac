@@ -1,0 +1,4 @@
+/home/cl0wn/drbac/test/entity/roles/role-67f0bb2a-c6e5-4fc0-a598-01fd89962310(/.*)? gen_context(system_u:object_r:role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_t, s0)
+/home/cl0wn/drbac/test/entity/roles/role-67f0bb2a-c6e5-4fc0-a598-01fd89962310/role-67f0bb2a-c6e5-4fc0-a598-01fd89962310 gen_context(system_u:object_r:role-67f0bb2a-c6e5-4fc0-a598-01fd89962310_exec_t, s0)
+##### DO NOT EDIT ABOVE
+##### YOU CAN ADD YOUR FILE CONTEXT BELOW
