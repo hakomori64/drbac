@@ -160,15 +160,6 @@ fn handle_os_error<T: std::fmt::Display>(err: i32, action: T) {
 
 pub fn exec_chroot(root: &str) {
     std::env::set_current_dir(&root).expect(&format!("Cannot change current dir to {}", &root));
-    let err = unsafe {
-        chroot(
-            CString::new(".".as_bytes())
-            .expect("Error in construct CString")
-            .as_bytes_with_nul()
-            .as_ptr() as *const libc::c_char
-        )
-    };
-
     handle_os_error(err, "chroot");
 }
 
