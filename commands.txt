@@ -1,0 +1,9 @@
+connect
+localhost
+8080
+identificate
+19fc880f-2332-4d62-9fb8-ce6b3272f8c6
+execute command
+localhost
+19fc880f-2332-4d62-9fb8-ce6b3272f8c6
+ls

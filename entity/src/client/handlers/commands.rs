@@ -37,14 +37,20 @@ pub fn execute_command(connection: &mut Connection, state: State) -> Result<Stat
                 }
             }
         }
+
+        let role_id: String = io::read_until(
+            "コマンドを実行するロールを入力してください：",
+            "正しいIDを入力してください",
+            |_| true
+        );
     
         let mut commands: Vec<String> = operation.split_whitespace().map(|s| String::from(s)).collect();
     
         connection.write_message(&VerticalMessage::ExecuteReq1 {
             box_name: host_name.clone(),
             entity_id: entity_id.clone(),
-            command: commands[0].clone(),
-            args: commands.drain(1..).collect()
+            command: commands.clone(),
+            role_id: role_id,
         })?;
     
         match connection.read_message()? {

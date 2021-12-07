@@ -1,10 +1,12 @@
+use common::state::StateTrait;
 use anyhow::{anyhow, Result};
 use common::messages::VerticalMessage;
 use common::connection::Connection;
 use super::super::state::State;
+use std::os::unix::process::CommandExt;
 use common::jail::{
     create_directory_if_not_exists,
-    assign_roles_to_guest,
+    //assign_roles_to_guest,
     get_guest_id,
     exec_chroot,
     exec
@@ -12,16 +14,17 @@ use common::jail::{
 
 
 pub fn execute_command(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
-    if let VerticalMessage::ExecuteProxyReq1 { actor, entity_id, command, args, roles } = data {
+    if let VerticalMessage::ExecuteProxyReq1 { actor, entity_id, command, role_id, roles } = data {
         let actor_id = actor.actor_id();
-        assign_roles_to_guest(roles.clone(), entity_id.clone())?;
+        //assign_roles_to_guest(roles.clone(), entity_id.clone())?;
         if environment_setup(actor.actor_id()).is_err() {
             let msg = format!("actor id {}のディレクトリのセットアップに失敗しました", actor_id);
             return Err(anyhow!(msg))
         }
+        
         let guest_id = get_guest_id()?;
 
-        let result = exec(command, args, guest_id)?;
+        let result = exec(role_id, command, guest_id, roles)?;
 
         connection.write_message(&VerticalMessage::ExecuteProxyRes1 {
             result
@@ -29,9 +32,10 @@ pub fn execute_command(connection: &mut Connection, state: State, data: Vertical
 
         loop {
             match connection.read_message::<VerticalMessage>()? {
-                VerticalMessage::ExecuteProxyReq1 { command, args, .. } => {
+                VerticalMessage::ExecuteProxyReq1 { command, role_id, roles, .. } => {
+
                     // execute commands
-                    let result = exec(command, args, guest_id)?;
+                    let result = exec(role_id, command, guest_id, roles)?;
                     connection.write_message(&VerticalMessage::ExecuteProxyRes1 {
                         result
                     })?;

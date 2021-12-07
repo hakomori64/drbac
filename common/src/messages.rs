@@ -102,14 +102,14 @@ pub enum VerticalMessage {
     ExecuteReq1 {
         box_name: String, // box_nameに接続して実行してください
         entity_id: String,
-        command: String, // この内容を実行してください
-        args: Vec<String>
+        command: Vec<String>,
+        role_id: String, // このロールで実行したいです
     },
     ExecuteProxyReq1 {
         actor: Actor,
         entity_id: String,
-        command: String,
-        args: Vec<String>,
+        command: Vec<String>,
+        role_id: String,
         roles: Vec<Actor>,
     },
     ExecuteProxyRes1 {

@@ -8,16 +8,15 @@ use libc::{
     mknod,
     mode_t,
     dev_t,
-    chroot,
     S_IFCHR,
 };
 use std::ffi::CString;
 use std::io::Error;
 use std::process::Command;
+use std::os::unix::process::CommandExt;
 use users::{
     get_user_by_name,
 };
-use std::os::unix::process::CommandExt;
 use crate::db::models::actor::Actor;
 use std::fs::File;
 use std::io::Read;
@@ -160,33 +159,40 @@ fn handle_os_error<T: std::fmt::Display>(err: i32, action: T) {
 
 pub fn exec_chroot(root: &str) {
     std::env::set_current_dir(&root).expect(&format!("Cannot change current dir to {}", &root));
-    handle_os_error(err, "chroot");
 }
 
-pub fn exec(command: String, args: Vec<String>, guest_id: u32) -> Result<String> {
+pub fn exec(role_id: String, command: Vec<String>, guest_id: u32, roles: Vec<Actor>) -> Result<String> {
 
-    if command.as_str() == "cd" {
-        if args.len() != 1 {
+    let mut role_id_in_roles = false;
+    for role in roles {
+        if role_id == role.actor_id() {
+            role_id_in_roles = true;
+            break;
+        }
+    }
+    if ! role_id_in_roles {
+        return Err(anyhow!("ユーザーは指定されたロールを持っていません"));
+    }
+
+    if command[0].as_str() == "cd" {
+        println!("changing directory...");
+        if command.len() != 2 {
             return Err(anyhow!("bash: cd: 引数が多すぎます"));
         }
-        std::env::set_current_dir(&args[0])?;
+        std::env::set_current_dir(&command[1])?;
         return Ok(String::from(""));
     }
 
-    if args.len() != 0 {
-        let output = Command::new(command)
-            .uid(guest_id)
-            .args(&args)
-            .output()?;
-        
-        Ok(String::from_utf8(output.stdout)?)
-    } else {
-        let output = Command::new(command)
-            .uid(guest_id)
-            .output()?;
-        
-        Ok(String::from_utf8(output.stdout)?)
-    }
+    let mut path = std::env::current_exe()?;
+    path.pop();
+    let role_exe_path = format!("{}/roles/role-{}/role-{}", path.display(), role_id.clone(), role_id.clone());
+
+    let output = Command::new(role_exe_path)
+        .uid(guest_id)
+        .args(command)
+        .output()?;
+    
+    Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
 pub fn get_guest_id() -> Result<u32> {
@@ -196,75 +202,4 @@ pub fn get_guest_id() -> Result<u32> {
     };
 
     Ok(id)
-}
-
-
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct RoleMap {
-    pub src: String,
-    pub dst: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, Clone)]
-struct RoleMaps {
-    pub maps: Vec<RoleMap>
-}
-
-pub fn assign_roles_to_guest(roles: Vec<Actor>, entity_id: String) -> Result<()> {
-
-    // map drbac roles to local roles
-    let filename = format!("role_maps/{}.json", entity_id);
-    let mut map_file = File::open(&filename).map_err(|_| anyhow!("role_mapを開くのに失敗しました"))?;
-    let metadata = fs::metadata(&filename)?;
-    let mut buffer = vec![0; metadata.len() as usize];
-    map_file.read(&mut buffer)?;
-
-    let data: RoleMaps = vec_to_struct(buffer)?;
-
-    let mut role_maps = HashMap::new();
-
-    for role_map in data.maps {
-        role_maps.insert(role_map.src, role_map.dst);
-    }
-
-    let mut role_names: Vec<String> = vec![];
-    for role in roles {
-        let role_name = if let Actor::Role { name, .. } = role {
-            name
-        } else {
-            return Err(anyhow!("アクタータイプがロールではありません"));
-        };
-
-        match role_maps.get(&role_name) {
-            Some(value) => {
-                role_names.push(value.clone());
-            }
-            _ => {
-                return Err(anyhow!("DRBACのロールに対応するSELinuxのロールがありません。"));
-            }
-        }
-    }
-
-    let role_str = role_names.join(" ");
-
-    let command = "semanage";
-    let formatted = &format!("{}", role_str);
-    let args = vec!{
-        "user",
-        "-m",
-        "-R",
-        formatted,
-        "guest_u"
-    };
-
-    let status = Command::new(command)
-        .args(&args)
-        .status().map_err(|_| anyhow!("semanageの実行に失敗しました"))?;
-
-    if status.success() {
-        Ok(())
-    } else {
-        Err(anyhow!("guestのロールの変更に失敗しました"))
-    }
 }

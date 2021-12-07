@@ -47,13 +47,10 @@ pub fn register_entity(connection: &mut Connection, state: State) -> Result<Stat
             } else {
                 return Err(anyhow!("送られてきた証明書に問題があります"));
             };
-            let default_role_name = format!("role-{}-default", entity.actor_id());
-            role_presetup(&default_role_name)?;
             
             create_entity(&conn, entity.actor_id(), entity.name(), Some(secret_key), Some(public_key))?;
             create_relation(&conn, entity.actor_id(), central_public_key)?;
 
-            show_role_presetup_message(&default_role_name)?;
             Ok(state)
         }
         _ => {

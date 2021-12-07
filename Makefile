@@ -36,4 +36,4 @@ listener:
 	cp target/debug/listener test/entity/listener
 	mkdir -p test/entity/roles
 	cp target/debug/shell test/entity/roles/base_binary
-	test/entity/listener
+	sudo test/entity/listener

@@ -12,7 +12,7 @@ use common::db::models::actor::Actor;
 
 
 pub fn execute_command(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
-    if let VerticalMessage::ExecuteReq1 { box_name, entity_id, command, args } = data {
+    if let VerticalMessage::ExecuteReq1 { box_name, entity_id, command, role_id } = data {
         let mut entity_connection = Connection::new();
 
         if state.opponent_actor().is_none() {
@@ -61,7 +61,7 @@ pub fn execute_command(connection: &mut Connection, state: State, data: Vertical
             actor: state.opponent_actor().unwrap(),
             entity_id: entity_id.clone(),
             command,
-            args,
+            role_id,
             roles: related_roles.clone(),
         }) {
             Err(err) => {
@@ -107,12 +107,12 @@ pub fn execute_command(connection: &mut Connection, state: State, data: Vertical
             };
 
             match message {
-                VerticalMessage::ExecuteReq1 { command, args, .. } => {
+                VerticalMessage::ExecuteReq1 { command, role_id, .. } => {
                     match entity_connection.write_message(&VerticalMessage::ExecuteProxyReq1 {
                         actor: state.opponent_actor().unwrap(),
                         entity_id: entity_id.clone(),
                         command,
-                        args,
+                        role_id,
                         roles: related_roles.clone(),
                     }) {
                         Err(err) => {
