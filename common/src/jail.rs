@@ -1,6 +1,4 @@
 use anyhow::{Result, anyhow};
-use std::collections::HashMap;
-use serde::{Serialize, Deserialize};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -18,9 +16,6 @@ use users::{
     get_user_by_name,
 };
 use crate::db::models::actor::Actor;
-use std::fs::File;
-use std::io::Read;
-use crate::encoding::vec_to_struct;
 
 const NEW_DIRS: &'static [&'static str] = &["etc", "run", "usr", "var/log"];
 const TMP_DIRS: &'static [&'static str] = &["tmp", "run/lock", "var/tmp"];

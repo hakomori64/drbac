@@ -1,9 +1,7 @@
-use common::state::StateTrait;
 use anyhow::{anyhow, Result};
 use common::messages::VerticalMessage;
 use common::connection::Connection;
 use super::super::state::State;
-use std::os::unix::process::CommandExt;
 use common::jail::{
     create_directory_if_not_exists,
     //assign_roles_to_guest,
@@ -14,7 +12,7 @@ use common::jail::{
 
 
 pub fn execute_command(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
-    if let VerticalMessage::ExecuteProxyReq1 { actor, entity_id, command, role_id, roles } = data {
+    if let VerticalMessage::ExecuteProxyReq1 { actor, command, role_id, roles, .. } = data {
         let actor_id = actor.actor_id();
         //assign_roles_to_guest(roles.clone(), entity_id.clone())?;
         if environment_setup(actor.actor_id()).is_err() {

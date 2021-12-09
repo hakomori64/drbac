@@ -44,7 +44,7 @@ pub fn execute_command(connection: &mut Connection, state: State) -> Result<Stat
             |_| true
         );
     
-        let mut commands: Vec<String> = operation.split_whitespace().map(|s| String::from(s)).collect();
+        let commands: Vec<String> = operation.split_whitespace().map(|s| String::from(s)).collect();
     
         connection.write_message(&VerticalMessage::ExecuteReq1 {
             box_name: host_name.clone(),

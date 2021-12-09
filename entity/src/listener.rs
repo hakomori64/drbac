@@ -43,7 +43,6 @@ pub fn handle_connection(stream: TcpStream) {
         Some(secret_key),
         Some(public_key),
         Some(certificate),
-        None,
     );
     state = match crypto_channel(&mut connection, state.clone()) {
         Ok(_) => {
