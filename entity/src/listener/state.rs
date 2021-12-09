@@ -30,7 +30,6 @@ impl State {
         box_secret_key: Option<Vec<u8>>,
         box_public_key: Option<Vec<u8>>,
         box_certificate: Option<Certificate>,
-        current_role: Option<String>
     ) -> State {
         State {
             box_secret_key,

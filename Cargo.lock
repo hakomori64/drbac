@@ -177,12 +177,12 @@ dependencies = [
  "base64",
  "diesel",
  "diesel_migrations",
- "dotenv",
  "ed25519-dalek",
  "handlebars",
  "libc",
  "libmount",
  "libsqlite3-sys",
+ "load-dotenv",
  "names",
  "nix 0.23.0",
  "num-derive",
@@ -446,6 +446,15 @@ dependencies = [
  "cc",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "load-dotenv"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71abcf6d8da2a6c163554a61cdbca2438bbe9e687a9c5ebeee12e9af42864b54"
+dependencies = [
+ "dotenv",
 ]
 
 [[package]]

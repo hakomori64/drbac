@@ -20,7 +20,7 @@ strum = { version = "0.22", features = ["derive"] }
 strum_macros = "0.22"
 sha2 = "0.9.8"
 diesel = { version = "1.4.5", features = ["sqlite"] }
-dotenv = "0.15.0"
+load-dotenv = "0.1.2"
 libsqlite3-sys = { version = "0.9.1", features = ["bundled"]}
 diesel_migrations = "1.4.0"
 num-traits = "0.2"
