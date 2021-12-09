@@ -9,17 +9,16 @@ test_build:
 
 .PHONY: deploy_to_vms
 deploy_to_vms:
-	cargo build --release
+	cargo build --release --target=x86_64-unknown-linux-musl
 	mkdir -p ../host1/roles
 	mkdir -p ../host2/roles
 	mkdir -p ../host3/roles
-	cp target/release/client ../host1/
-	cp target/release/listener ../host1/
-	cp target/release/client ../host2/
-	cp target/release/server ../host3/
-
-	cp target/release/shell ../host1/roles/base_binary
-	cp target/release/shell ../host2/roles/base_binary
+	cp target/x86_64-unknown-linux-musl/release/client ../host1/
+	cp target/x86_64-unknown-linux-musl/release/listener ../host1/
+	cp target/x86_64-unknown-linux-musl/release/client ../host2/
+	cp target/x86_64-unknown-linux-musl/release/server ../host3/
+	cp target/x86_64-unknown-linux-musl/release/shell ../host1/roles/base_binary
+	cp target/x86_64-unknown-linux-musl/release/shell ../host2/roles/base_binary
 
 .PHONY: test_db_initialize
 test_db_initialize:
@@ -34,24 +33,24 @@ test_db_initialize:
 build_client:
 	rm -rf build
 	mkdir -p build/roles
-	cargo build --release
-	cp target/release/client build/
-	cp target/release/shell build/roles/base_binary
+	cargo build --release --target=x86_64-unknown-linux-musl
+	cp target/x86_64-unknown-linux-musl/release/client build/
+	cp target/x86_64-unknown-linux-musl/release/shell build/roles/base_binary
 
 .PHONY: build_listener
 build_listener:
 	rm -rf build
 	mkdir -p build/roles
-	cargo build --release
-	cp target/release/listener build/
-	cp target/release/shell build/roles/base_binary
+	cargo build --release --target=x86_64-unknown-linux-musl
+	cp target/x86_64-unknown-linux-musl/release/listener build/
+	cp target/x86_64-unknown-linux-musl/release/shell build/roles/base_binary
 
 .PHONY: build_server
 build_server:
 	rm -rf build
 	mkdir -p build
-	cargo build --release
-	cp target/release/server build/
+	cargo build --release --target=x86_64-unknown-linux-musl
+	cp target/x86_64-unknown-linux-musl/release/server build/
 
 .PHONY: client
 client:
