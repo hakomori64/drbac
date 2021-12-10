@@ -20,9 +20,7 @@ pub fn execute_command(connection: &mut Connection, state: State, data: Vertical
             return Err(anyhow!(msg))
         }
         
-        let guest_id = get_guest_id()?;
-
-        let result = exec(role_id, command, guest_id, roles)?;
+        let result = exec(role_id, command, roles)?;
 
         connection.write_message(&VerticalMessage::ExecuteProxyRes1 {
             result
@@ -33,7 +31,7 @@ pub fn execute_command(connection: &mut Connection, state: State, data: Vertical
                 VerticalMessage::ExecuteProxyReq1 { command, role_id, roles, .. } => {
 
                     // execute commands
-                    let result = exec(role_id, command, guest_id, roles)?;
+                    let result = exec(role_id, command, roles)?;
                     connection.write_message(&VerticalMessage::ExecuteProxyRes1 {
                         result
                     })?;

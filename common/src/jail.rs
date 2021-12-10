@@ -156,7 +156,7 @@ pub fn exec_chroot(root: &str) {
     std::env::set_current_dir(&root).expect(&format!("Cannot change current dir to {}", &root));
 }
 
-pub fn exec(role_id: String, command: Vec<String>, guest_id: u32, roles: Vec<Actor>) -> Result<String> {
+pub fn exec(role_id: String, command: Vec<String>, roles: Vec<Actor>) -> Result<String> {
 
     let mut role_id_in_roles = false;
     for role in roles {
@@ -183,18 +183,8 @@ pub fn exec(role_id: String, command: Vec<String>, guest_id: u32, roles: Vec<Act
     let role_exe_path = format!("{}/roles/role-{}/role-{}", path.display(), role_id.clone(), role_id.clone());
 
     let output = Command::new(role_exe_path)
-        .uid(guest_id)
         .args(command)
         .output()?;
     
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
-}
-
-pub fn get_guest_id() -> Result<u32> {
-    let id = match get_user_by_name("guest") {
-        Some(user) => user.uid(),
-        None => return Err(anyhow!("ゲストアカウントが存在しません"))
-    };
-
-    Ok(id)
 }
