@@ -5,7 +5,6 @@ use super::super::state::State;
 use common::jail::{
     create_directory_if_not_exists,
     //assign_roles_to_guest,
-    get_guest_id,
     exec_chroot,
     exec
 };
