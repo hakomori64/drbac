@@ -10,7 +10,7 @@ require {
     type shell_exec_t;
     class file { getattr open ioctl lock entrypoint execute execute_no_trans map read relabelto };
     class chr_file { append read write getattr ioctl };
-    class dir { relabelto }
+    class dir { relabelto };
     class filesystem associate;
     class process setpgid;
 }
