@@ -6,9 +6,12 @@ require {
     role unconfined_r;
     type user_devpts_t;
     type bin_t;
+    type fs_t;
     type shell_exec_t;
-    class file { getattr open ioctl lock entrypoint execute execute_no_trans map read };
+    class file { getattr open ioctl lock entrypoint execute execute_no_trans map read relabelto };
     class chr_file { append read write getattr ioctl };
+    class dir { relabelto }
+    class filesystem associate;
     class process setpgid;
 }
 
@@ -29,6 +32,9 @@ allow {{role_name}}_t user_devpts_t:chr_file { append read write getattr ioctl }
 allow {{role_name}}_t self:process { setpgid };
 can_exec({{role_name}}_t bin_t)
 
+allow {{role_name}}_t fs_t:filesystem associate;
+allow unconfined_t {{role_name}}_t:file relabelto;
+allow unconfined_t {{role_name}}_t:dir relabelto;
 
 ##### DO NOT EDIT ABOVE
 ###### YOU CAN ADD RULES BELOW

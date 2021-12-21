@@ -11,10 +11,6 @@ use libc::{
 use std::ffi::CString;
 use std::io::Error;
 use std::process::Command;
-use std::os::unix::process::CommandExt;
-use users::{
-    get_user_by_name,
-};
 use crate::db::models::actor::Actor;
 
 const NEW_DIRS: &'static [&'static str] = &["etc", "run", "usr", "var/log"];

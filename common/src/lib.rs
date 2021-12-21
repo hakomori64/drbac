@@ -1,7 +1,5 @@
 #[macro_use]
 extern crate diesel;
-extern crate tempfile;
-extern crate nix;
 
 pub mod enums;
 pub mod stream;
