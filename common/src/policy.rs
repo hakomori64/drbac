@@ -69,10 +69,7 @@ pub fn show_role_presetup_message(role_name: &str) -> Result<()> {
     println!("cp /usr/share/selinux/devel/Makefile .");
     println!("make");
     println!("semodule -i {}.pp", role_name.clone());
-    println!("ロールがセットアップされたディレクトリがホームディレクトリ以下であれば、");
-    println!("/etc/selinux/<type>/contexts/files/file_contextsの該当する内容を");
-    println!("/etc/selinux/<type>/contexts/files/file_contexts.homedirの末尾に追加してください");
-    println!("cd ../");
+    println!("cd ../../");
     println!("restorecon -RFv .");
 
     Ok(())
