@@ -1,5 +1,5 @@
 use anyhow::Result;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::env;
 
 fn main() -> Result<()> {
@@ -12,15 +12,26 @@ fn main() -> Result<()> {
     let comms = &args[1..];
     println!("{:?}", comms);
     
-    let mut child = if comms.len() <= 1 {
+    let output = if comms.len() <= 1 {
         Command::new(comms[0].clone())
-            .spawn()
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output()
             .unwrap()
     } else {
         Command::new(comms[0].clone())
             .args(&comms[1..])
-            .spawn().unwrap()
+            .stdout(Stdio::piped())
+            .stderr(Stdio::piped())
+            .output().unwrap()
     };
-    child.wait().unwrap();
+
+    if output.status.success() {
+        println!("execution success!!");
+        println!("{}", String::from_utf8_lossy(&output.stdout));
+    } else {
+        println!("execution failed!!");
+        println!("{}", String::from_utf8_lossy(&output.stderr));
+    }
     Ok(())
 }
