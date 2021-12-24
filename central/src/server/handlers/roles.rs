@@ -10,9 +10,11 @@ use common::db::models::delegation::{
     get_roles,
 };
 use super::super::state::State;
-
+use std::time::{Instant,Duration};
+use common::utils::print_time;
 
 pub fn delegate_role(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    let start = Instant::now();
     if let VerticalMessage::DelegateRoleReq1 { subject_id, object_id, issuer_id } = data {
         let conn = establish_connection()?;
         let subject = find_actor(&conn, subject_id.clone())?;
@@ -31,6 +33,8 @@ pub fn delegate_role(connection: &mut Connection, state: State, data: VerticalMe
             issuer_id,
         })?;
 
+        let duration = start.elapsed();
+        print_time(duration);
         Ok(state)
     } else {
         return Err(anyhow!("DelegateRoleReq1でないリクエストを受け取りました"));

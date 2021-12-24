@@ -21,6 +21,8 @@ use common::pki::{
 };
 use common::handlers::client::crypto_channel::crypto_channel;
 use std::path::PathBuf;
+use std::time::{Instant,Duration};
+use common::utils::print_time;
 
 
 pub fn start_client() {
@@ -58,6 +60,7 @@ pub fn start_client() {
                 let host: String = io::read_line();
                 io::write("port: int = ");
                 let port: i32 = io::read_line();
+                let start = Instant::now();
                 state = match connect(&mut connection, state.clone(), host.as_str(), port) {
                     Ok(state) => {
                         println!("コネクションの確立に成功しました。");
@@ -74,6 +77,8 @@ pub fn start_client() {
                 match crypto_channel(&mut connection, state.clone()) {
                     Ok(opponent_type) => {
                         println!("通信の暗号化に成功しました");
+                        let duration = start.elapsed();
+                        print_time(duration);
                         State::new(
                             state.actor(),
                             state.box_secret_key(),

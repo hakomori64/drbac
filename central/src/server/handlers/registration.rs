@@ -12,9 +12,12 @@ use common::db::models::actor::{
 };
 use common::state::StateTrait;
 use super::super::state::State;
+use std::time::{Instant,Duration};
+use common::utils::print_time;
 
 
 pub fn register_entity(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    let start = Instant::now();
     if let VerticalMessage::RegisterEntityReq1 { name, public_key } = data {
         let conn = establish_connection()?;
         let actor_id = generate_actor_id()?;
@@ -25,6 +28,9 @@ pub fn register_entity(connection: &mut Connection, state: State, data: Vertical
             entity,
             certificate: state.box_certificate().unwrap()
         })?;
+
+        let duration = start.elapsed();
+        print_time(duration);
         Ok(state)
     } else {
         return Err(anyhow!("RegisterEntityReq1でないリクエストを受け取りました"));
@@ -32,6 +38,7 @@ pub fn register_entity(connection: &mut Connection, state: State, data: Vertical
 }
 
 pub fn register_role(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    let start = Instant::now();
     if let VerticalMessage::RegisterRoleReq1 { name, is_assignment, public_key } = data {
         // check if state.actor is entity
         if state.opponent_actor.clone().is_none() {
@@ -50,6 +57,9 @@ pub fn register_role(connection: &mut Connection, state: State, data: VerticalMe
         connection.write_message(&VerticalMessage::RegisterRoleRes1 {
             role
         })?;
+
+        let duration = start.elapsed();
+        print_time(duration);
         Ok(state)
     } else {
         return Err(anyhow!("RegisterRoleReq1でないリクエストを受け取りました"));
@@ -57,6 +67,7 @@ pub fn register_role(connection: &mut Connection, state: State, data: VerticalMe
 }
 
 pub fn register_user(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    let start = Instant::now();
     if let VerticalMessage::RegisterUserReq1 { name, public_key } = data {
         // check if state.actor is entity
         if state.opponent_actor.clone().is_none() {
@@ -75,6 +86,8 @@ pub fn register_user(connection: &mut Connection, state: State, data: VerticalMe
         connection.write_message(&VerticalMessage::RegisterUserRes1 {
             user
         })?;
+        let duration = start.elapsed();
+        print_time(duration);
         Ok(state)
     } else {
         return Err(anyhow!("RegisterUserReq1でないリクエストを受け取りました"));

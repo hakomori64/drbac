@@ -20,6 +20,8 @@ use common::pki::{
     verify_certificate,
 };
 use common::constants::CA_PUBLIC_KEY;
+use std::time::{Duration,Instant};
+use common::utils::print_time;
 
 pub fn register_entity(connection: &mut Connection, state: State) -> Result<State> {
     // name
@@ -29,6 +31,7 @@ pub fn register_entity(connection: &mut Connection, state: State) -> Result<Stat
         |_| true
     );
 
+    let start = Instant::now();
     let (secret_key, public_key) = generate_key_pair()?;
 
     connection.write_message(&VerticalMessage::RegisterEntityReq1 {
@@ -51,6 +54,8 @@ pub fn register_entity(connection: &mut Connection, state: State) -> Result<Stat
             create_entity(&conn, entity.actor_id(), entity.name(), Some(secret_key), Some(public_key))?;
             create_relation(&conn, entity.actor_id(), central_public_key)?;
 
+            let duration = start.elapsed();
+            print_time(duration);
             Ok(state)
         }
         _ => {
@@ -71,6 +76,8 @@ pub fn register_role(connection: &mut Connection, state: State) -> Result<State>
         "true, falseのどちらかを入力してください",
         |_| true
     );
+
+    let start = Instant::now();
 
     let (secret_key, public_key) = generate_key_pair()?;
 
@@ -104,6 +111,9 @@ pub fn register_role(connection: &mut Connection, state: State) -> Result<State>
                 )?;
 
                 show_role_presetup_message(&role_name)?;
+
+                let duration = start.elapsed();
+                print_time(duration);
             } else {
                 return Err(anyhow!("RegisterRoleRes1の中身がおかしいです"));
             }
@@ -122,6 +132,7 @@ pub fn register_user(connection: &mut Connection, state: State) -> Result<State>
         |_| true
     );
 
+    let start = Instant::now();
     let (secret_key, public_key) = generate_key_pair()?;
 
     connection.write_message(&VerticalMessage::RegisterUserReq1 {
@@ -146,6 +157,9 @@ pub fn register_user(connection: &mut Connection, state: State) -> Result<State>
                     Some(secret_key),
                     Some(public_key)
                 )?;
+
+                let duration = start.elapsed();
+                print_time(duration);
             } else {
                 return Err(anyhow!("RegisterUserRes1の中身がおかしいです"));
             }

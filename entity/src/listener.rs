@@ -19,9 +19,12 @@ mod request;
 mod handlers;
 
 use state::State;
+use std::time::{Duration,Instant};
+use common::utils::print_time;
 
 
 pub fn handle_connection(stream: TcpStream) {
+    let start = Instant::now();
     let secret_path: PathBuf = ["secret_key.pem"].iter().collect();
     let public_path: PathBuf = ["public_key.pem"].iter().collect();
     let cert_path: PathBuf = ["cert.json"].iter().collect();
@@ -55,6 +58,8 @@ pub fn handle_connection(stream: TcpStream) {
             return;
         }
     };
+    let duration = start.elapsed();
+    print_time(duration);
 
     loop {
         println!("reading from stream...");

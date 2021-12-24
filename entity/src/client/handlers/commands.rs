@@ -4,6 +4,8 @@ use common::io;
 use common::connection::Connection;
 use super::super::state::State;
 use common::messages::VerticalMessage;
+use std::time::{Duration, Instant};
+ues common::utils::print_time;
 
 pub fn execute_command(connection: &mut Connection, state: State) -> Result<State> {
     let host_name: String = io::read_until(
@@ -43,6 +45,8 @@ pub fn execute_command(connection: &mut Connection, state: State) -> Result<Stat
             "正しいIDを入力してください",
             |_| true
         );
+
+        let start = Instant::now();
     
         let commands: Vec<String> = operation.split_whitespace().map(|s| String::from(s)).collect();
     
@@ -57,6 +61,9 @@ pub fn execute_command(connection: &mut Connection, state: State) -> Result<Stat
             VerticalMessage::ExecuteRes1 { result } => {
                 println!("### result ###");
                 println!("{}", result);
+
+                let duration = start.elapsed();
+                print_time(duration);
             }
             _ => {
                 return Err(anyhow!("ExecuteRes1でないレスポンスを受け取りました"));

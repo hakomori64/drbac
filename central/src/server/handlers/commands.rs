@@ -9,9 +9,12 @@ use common::db::models::delegation::{
     get_roles,
 };
 use common::db::models::actor::Actor;
+use std::time::{Duration,Instant};
+use common::utils::print_time;
 
 
 pub fn execute_command(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    let start = Instant::now();
     if let VerticalMessage::ExecuteReq1 { box_name, entity_id, command, role_id } = data {
         let mut entity_connection = Connection::new();
 
@@ -94,6 +97,9 @@ pub fn execute_command(connection: &mut Connection, state: State, data: Vertical
         connection.write_message(&VerticalMessage::ExecuteRes1 {
             result: result
         })?;
+
+        let duration = start.elapsed();
+        print_time(duration);
 
         loop {
             let message = match connection.read_message::<VerticalMessage>() {

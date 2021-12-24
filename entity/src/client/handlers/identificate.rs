@@ -14,6 +14,8 @@ use common::pki::{
 use common::messages::VerticalMessage;
 use common::state::StateTrait;
 use super::super::state::State;
+use std::time::{Instant, Duration};
+use common::utils::print_time;
 
 pub fn identificate(connection: &mut Connection, state: State) -> Result<State> {
 
@@ -23,6 +25,7 @@ pub fn identificate(connection: &mut Connection, state: State) -> Result<State> 
         |val| is_valid_actor_id_format(val)
     );
 
+    let start = Instant::now();
     let conn = establish_connection()?;
     let actor = find_actor(&conn, actor_id.clone())?;
 
@@ -66,6 +69,9 @@ pub fn identificate(connection: &mut Connection, state: State) -> Result<State> 
         state.box_certificate(),
         state.opponent_type(),
     );
+
+    let duration = start.elapsed();
+    print_time(duration);
 
     Ok(state)
 }

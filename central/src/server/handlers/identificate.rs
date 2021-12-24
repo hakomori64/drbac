@@ -13,10 +13,13 @@ use common::pki::{
 use common::connection::Connection;
 use common::state::StateTrait;
 use super::super::state::State;
+use std::time::{Instant, Duration};
+use common::utils::print_time;
 
 pub fn identificate(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
     if let VerticalMessage::IdentificateReq1 { actor_id, signature } = data {
         
+        let start = Instant::now();
         let conn = establish_connection()?;
         let actor = find_actor(&conn, actor_id.clone())?;
         let public_key_content = actor.public_key();
@@ -51,6 +54,8 @@ pub fn identificate(connection: &mut Connection, state: State, data: VerticalMes
             state.box_certificate().clone(),
         );
 
+        let duration = start.elapsed();
+        print_time(duration);
         return Ok(state);
     } else {
         return Err(anyhow!("IdentificateReq1が渡されませんでした"));

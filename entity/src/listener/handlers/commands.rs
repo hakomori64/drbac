@@ -8,10 +8,14 @@ use common::jail::{
     exec_chroot,
     exec
 };
+use std::time::{Duration,Instant};
+use common::utils::print_time;
 
 
 pub fn execute_command(connection: &mut Connection, state: State, data: VerticalMessage) -> Result<State> {
+    let start = Instant::now();
     if let VerticalMessage::ExecuteProxyReq1 { actor, command, role_id, roles, .. } = data {
+        
         let actor_id = actor.actor_id();
         //assign_roles_to_guest(roles.clone(), entity_id.clone())?;
         if environment_setup(actor.actor_id()).is_err() {
@@ -24,6 +28,9 @@ pub fn execute_command(connection: &mut Connection, state: State, data: Vertical
         connection.write_message(&VerticalMessage::ExecuteProxyRes1 {
             result
         })?;
+
+        let duration = start.elapsed();
+        print_time(duration);
 
         loop {
             match connection.read_message::<VerticalMessage>()? {

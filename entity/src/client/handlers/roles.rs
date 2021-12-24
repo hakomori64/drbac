@@ -5,6 +5,8 @@ use common::messages::VerticalMessage;
 use common::db::models::actor::is_valid_actor_id_format;
 use common::db::models::actor::Actor;
 use super::super::state::State;
+use std::time::{Instant,Duration};
+use common::utils::print_time;
 
 pub fn delegate_role(connection: &mut Connection, state: State) -> Result<State> {
     // take
@@ -25,6 +27,7 @@ pub fn delegate_role(connection: &mut Connection, state: State) -> Result<State>
         |val| is_valid_actor_id_format(val)
     );
 
+    let start = Instant::now();
     connection.write_message(&VerticalMessage::DelegateRoleReq1 {
         subject_id,
         object_id,
@@ -32,7 +35,11 @@ pub fn delegate_role(connection: &mut Connection, state: State) -> Result<State>
     })?;
 
     match connection.read_message()? {
-        VerticalMessage::DelegateRoleRes1 {..} => Ok(state),
+        VerticalMessage::DelegateRoleRes1 {..} => {
+            let duration = start.elapsed();
+            print_time(duration);
+            Ok(state)
+        }
         _ => Err(anyhow!("DelegateRoleRes1でないレスポンスを受け取りました"))
     }
 }
