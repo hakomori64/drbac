@@ -5,7 +5,7 @@ use common::connection::Connection;
 use super::super::state::State;
 use common::messages::VerticalMessage;
 use std::time::{Duration, Instant};
-ues common::utils::print_time;
+use common::utils::print_time;
 
 pub fn execute_command(connection: &mut Connection, state: State) -> Result<State> {
     let host_name: String = io::read_until(
