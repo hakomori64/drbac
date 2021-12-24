@@ -103,7 +103,7 @@ pub fn register_role(connection: &mut Connection, state: State) -> Result<State>
                     Some(public_key)
                 )?;
 
-                show_role_presetup_message(&actor_id)?;
+                show_role_presetup_message(&role_name)?;
             } else {
                 return Err(anyhow!("RegisterRoleRes1の中身がおかしいです"));
             }
